@@ -33,4 +33,376 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; }
 .letter-box.cursor { border-bottom-color: #5b7fff; }
 .letter-box.cursor::after { content:''; display:block; width:2px; height:18px; background:#5b7fff; position:absolute; bottom:4px; animation: blink .8s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 5
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+.letter-boxes.shake { animation: shake .3s; }
+
+/* Pencil Input For iPad Safari & Scribble */
+.pencil-input-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+.pencil-input { 
+  width: 100%; 
+  max-width: 320px; 
+  border: 1px solid #d0d7f0; 
+  background: #f7f8fc;
+  border-radius: 8px;
+  padding: 10px; 
+  font-size: 1.1rem; 
+  text-align: center; 
+  outline: none; 
+  color: #3b4a6b;
+  caret-color: #5b7fff; 
+  letter-spacing: 2px; 
+}
+.pencil-input:focus { border-color: #5b7fff; background: #fff; }
+
+.btn-row { display: flex; gap: 10px; }
+.btn-back   { flex: 1; padding: 12px; background: #f7f8fc; color: #718096; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
+.btn-back:hover:not(:disabled) { background: #e2e8f0; }
+.btn-back:disabled { opacity: .35; cursor: default; }
+.btn-submit { flex: 2; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; }
+.btn-submit:hover { background: #3a5fef; }
+.btn-submit:disabled { background: #a0aec0; cursor: default; }
+.btn-skip   { flex: 1; padding: 12px; background: #f7f8fc; color: #718096; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
+.btn-skip:hover { background: #e2e8f0; }
+
+/* Result page */
+#result-page { display: none; }
+.score-circle { width: 110px; height: 110px; border-radius: 50%; background: #5b7fff; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 4px 16px rgba(91,127,255,.35); }
+.score-num { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+.score-lbl { font-size: 0.75rem; opacity: .85; margin-top: 2px; }
+.result-section { margin-bottom: 18px; }
+.result-section h3 { font-size: 0.9rem; color: #718096; margin-bottom: 8px; }
+.result-tag { display: inline-block; border-radius: 6px; padding: 4px 10px; margin: 3px; font-size: 0.88rem; }
+.result-tag.missed  { border: 1px solid #f59e0b; color: #92400e; background: #fffbeb; }
+.result-tag.skipped { border: 1px solid #e2e8f0; color: #718096; background: #f7f8fc; }
+#redo-btn     { display: block; width: 100%; margin-top: 16px; padding: 12px; background: #f7f8fc; color: #5b7fff; border: 1.5px solid #5b7fff; border-radius: 10px; font-size: 1rem; cursor: pointer; }
+#redo-btn:hover { background: #eef1ff; }
+#restart-btn { display: block; width: 100%; margin-top: 10px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; }
+#restart-btn:hover { background: #3a5fef; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="input-page">
+    <h1>📖 背单词</h1>
+    <select id="vocab-select">
+      <option value="" disabled selected>-- 请选择词汇表 --</option>
+      <option value="lesson_1">第一课词汇 (Lesson 1)</option>
+    </select>
+    <div class="textarea-hint">数据将自动从 GitHub 仓库远程拉取</div>
+    <button id="start-btn" disabled>开始练习 →</button>
+  </div>
+  
+  <div id="practice-page">
+    <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+    <div class="progress-text" id="prog-text"></div>
+    <div class="chinese-word" id="chinese-display"></div>
+    <div class="hint-label" id="hint-label"></div>
+    <div class="letter-boxes" id="letter-boxes"></div>
+    
+    <div class="pencil-input-wrap">
+      <input class="pencil-input" id="pencil-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="在此处手写或输入">
+    </div>
+    
+    <div class="btn-row">
+      <button class="btn-back" id="back-btn" disabled>← 返回</button>
+      <button class="btn-submit" id="submit-btn">提交</button>
+      <button class="btn-skip" id="skip-btn">跳过</button>
+    </div>
+  </div>
+  
+  <div id="result-page">
+    <h1>🎉 本轮结果</h1>
+    <div class="score-circle">
+      <div class="score-num" id="score-num"></div>
+      <div class="score-lbl">答对</div>
+    </div>
+    <div class="result-section" id="missed-section">
+      <h3>❌ 提示后答对 / 超出提示</h3>
+      <div id="missed-list"></div>
+    </div>
+    <div class="result-section" id="skipped-section">
+      <h3>⏭ 跳过</h3>
+      <div id="skipped-list"></div>
+    </div>
+    <button id="redo-btn">重练错题 / 跳过题</button>
+    <button id="restart-btn">重新选择词汇表</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // 🎯 锁死用户名
+  const GITHUB_USERNAME = "kirasunil4807-dotcom"; 
+  // 🎯 锁死仓库名，彻底解决路径解析失败导致白屏的问题
+  const REPO_NAME = "enlearner"; 
+
+  var words=[], queue=[], results=[];
+  var cur=0, wrongAttempts=0;
+  var locked=false, typed='';
+  var revealedPos=[], shuffledIdx=[];
+  var prevState=null; 
+
+  function $(id){ return document.getElementById(id); }
+  
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var t=arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    return arr;
+  }
+  
+  function showPage(id){
+    ['input-page','practice-page','result-page'].forEach(function(p){
+      $(p).style.display = p===id ? 'block' : 'none';
+    });
+  }
+  
+  function updateProgress(){
+    var pct = queue.length ? (cur/queue.length*100).toFixed(0) : 0;
+    $('prog-bar').style.width = pct+'%';
+    $('prog-text').textContent = cur+' / '+queue.length;
+  }
+  
+  function initHints(){
+    var len = queue[cur].en.length;
+    shuffledIdx = shuffle(Array.from({length:len}, function(_,i){ return i; }));
+    revealedPos = [];
+  }
+  
+  function hintLabelText(){
+    if(!revealedPos.length) return '';
+    return queue[cur].en.split('').map(function(c,i){
+      return revealedPos.indexOf(i) >= 0 ? c : '_';
+    }).join(' ');
+  }
+  
+  function nonHintSlots(){
+    var res=[];
+    for(var i=0;i<queue[cur].en.length;i++)
+      if(revealedPos.indexOf(i)<0) res.push(i);
+    return res;
+  }
+  
+  function reconstructAnswer(){
+    var w=queue[cur], slots=nonHintSlots(), arr=w.en.split('');
+    slots.forEach(function(pos,si){ arr[pos]=typed[si]||''; });
+    return arr.join('');
+  }
+  
+  function renderBoxes(){
+    var w=queue[cur], el=$('letter-boxes'), slots=nonHintSlots();
+    el.innerHTML='';
+    for(var i=0;i<w.en.length;i++){
+      var box=document.createElement('div');
+      box.className='letter-box';
+      if(revealedPos.indexOf(i)>=0){
+        box.textContent=w.en[i];
+        box.className+=' hint-char';
+      } else {
+        var si=slots.indexOf(i);
+        if(si<typed.length){
+          box.textContent=typed[si];
+          box.className+=' typed-char';
+        } else {
+          if(si===typed.length&&!locked) box.className+=' cursor';
+        }
+      }
+      el.appendChild(box);
+    }
+  }
+
+  $('vocab-select').addEventListener('change', function() {
+      if (this.value) {
+          $('start-btn').disabled = false;
+      }
+  });
+
+  $('start-btn').onclick = async function(){
+    const fileName = $('vocab-select').value;
+    if (!fileName) return;
+
+    $('start-btn').textContent = "正在加载数据...";
+    $('start-btn').disabled = true;
+
+    const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/vocabulary/${fileName}.json`;
+
+    try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error(`请求失败 (HTTP ${response.status})`);
+        
+        const jsonData = await response.json();
+        
+        words = jsonData.map(item => {
+            return { en: item.word.toLowerCase().trim(), zh: item.translation.trim() };
+        });
+
+        if(!words.length){ alert('词汇表文件内容为空！'); return; }
+        
+        queue=shuffle(words.slice()); results=[]; cur=0; prevState=null;
+        $('back-btn').disabled=true;
+        showPage('practice-page');
+        loadQuestion();
+    } catch (error) {
+        alert(`❌ 载入失败！\n请确认 GitHub 仓库的 main 分支中是否存在 vocabulary/${fileName}.json 文件。`);
+        console.error(error);
+    } finally {
+        $('start-btn').textContent = "开始练习 →";
+        $('start-btn').disabled = false;
+    }
+  };
+
+  // ---------- 原有背诵与交互逻辑保持原样 ----------
+  function loadQuestion(){
+    if(cur>=queue.length){ showResults(); return; }
+    wrongAttempts=0; 
+    locked=false; typed='';
+    initHints();
+    updateProgress();
+    $('chinese-display').textContent=queue[cur].zh;
+    $('hint-label').textContent='';
+    $('hint-label').classList.remove('fail');
+    $('letter-boxes').classList.remove('shake');
+    $('submit-btn').disabled=false;
+    $('pencil-input').value='';
+    $('pencil-input').disabled=false;
+    renderBoxes();
+  }
+  
+  function restoreQuestion(){
+    updateProgress();
+    $('chinese-display').textContent=queue[cur].zh;
+    $('hint-label').textContent=hintLabelText();
+    $('hint-label').classList.remove('fail');
+    $('letter-boxes').classList.remove('shake');
+    $('submit-btn').disabled=false;
+    $('pencil-input').value='';
+    $('pencil-input').disabled=false;
+    locked=false;
+    renderBoxes();
+  }
+  
+  function doSubmit(){
+    if(locked||!typed) return;
+    var correct=queue[cur].en;
+    var answer=reconstructAnswer();
+    
+    if(answer===correct){
+      locked=true;
+      $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ b.className='letter-box correct-char'; });
+      results.push({en:queue[cur].en, zh:queue[cur].zh, status: wrongAttempts===0?'correct':'hinted'});
+      prevState=null;
+      $('back-btn').disabled=true;
+      $('pencil-input').disabled=true;
+      setTimeout(function(){ cur++; loadQuestion(); }, 900);
+    } else {
+      wrongAttempts++;
+      if(wrongAttempts>2){
+        locked=true;
+        results.push({en:queue[cur].en, zh:queue[cur].zh, status:'hinted'});
+        prevState=null;
+        $('back-btn').disabled=true;
+        $('submit-btn').disabled=true;
+        $('hint-label').textContent='答案：'+correct;
+        $('hint-label').classList.add('fail');
+        setTimeout(function(){ cur++; loadQuestion(); }, 1200);
+        return;
+      }
+      var el=$('letter-boxes');
+      el.classList.add('shake');
+      setTimeout(function(){ el.classList.remove('shake'); }, 350);
+      revealedPos.push(shuffledIdx[wrongAttempts-1]);
+      $('hint-label').textContent=hintLabelText();
+      typed='';
+      $('pencil-input').value='';
+      renderBoxes();
+    }
+  }
+  
+  function doSkip(){
+    prevState={
+      cur: cur,
+      typed: typed,
+      revealedPos: revealedPos.slice(),
+      shuffledIdx: shuffledIdx.slice(),
+      wrongAttempts: wrongAttempts,
+      resultsLen: results.length
+    };
+    results.push({en:queue[cur].en, zh:queue[cur].zh, status:'skipped'});
+    $('back-btn').disabled=false;
+    cur++;
+    loadQuestion();
+  }
+  
+  function doBack(){
+    if(!prevState) return;
+    cur           = prevState.cur;
+    typed         = prevState.typed;
+    revealedPos   = prevState.revealedPos;
+    shuffledIdx   = prevState.shuffledIdx;
+    wrongAttempts = prevState.wrongAttempts;
+    results.splice(prevState.resultsLen); 
+    prevState=null;
+    $('back-btn').disabled=true;
+    restoreQuestion();
+  }
+  
+  $('pencil-input').addEventListener('input', function(e){
+    if(locked) return;
+    var correct=queue[cur].en;
+    var maxLen = correct.length - revealedPos.length;
+    var val = e.target.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
+    if (val.length > maxLen) { val = val.slice(0, maxLen); }
+    typed = val;
+    e.target.value = val;
+    renderBoxes();
+  });
+
+  $('pencil-input').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ doSubmit(); e.preventDefault(); }
+  });
+
+  $('letter-boxes').onclick=function(){ $('pencil-input').focus(); };
+  $('submit-btn').onclick=function(){ doSubmit(); };
+  $('skip-btn').onclick=doSkip;
+  $('back-btn').onclick=doBack;
+  
+  function showResults(){
+    showPage('result-page');
+    var ok=results.filter(function(r){ return r.status==='correct'; }).length;
+    $('score-num').textContent=ok+'/'+results.length;
+    var missed =results.filter(function(r){ return r.status==='hinted'; });
+    var skipped=results.filter(function(r){ return r.status==='skipped'; });
+    
+    function fill(arr,elId,cls){
+      var el=$(elId); el.innerHTML='';
+      arr.forEach(function(w){
+        var t=document.createElement('span');
+        t.className='result-tag '+cls;
+        t.textContent=w.en+' '+w.zh;
+        el.appendChild(t);
+      });
+    }
+    
+    $('missed-section').style.display =missed.length  ? '' : 'none';
+    $('skipped-section').style.display=skipped.length ? '' : 'none';
+    fill(missed, 'missed-list', 'missed');
+    fill(skipped,'skipped-list', 'skipped');
+    
+    var redo=missed.concat(skipped);
+    $('redo-btn').style.display=redo.length?'block':'none';
+    $('redo-btn').onclick=function(){
+      queue=redo.map(function(w){ return {en:w.en,zh:w.zh}; });
+      results=[]; cur=0; prevState=null;
+      $('back-btn').disabled=true;
+      showPage('practice-page');
+      loadQuestion();
+    };
+  }
+  
+  $('restart-btn').onclick=function(){ showPage('input-page'); };
+})();
+</script>
+</body>
+</html>
