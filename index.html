@@ -1,303 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>词汇表自测看板</title>
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            padding: 20px; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            background-color: #f8f9fa; 
-        }
-        h1 { 
-            text-align: center; 
-            color: #2b2d42; 
-            font-size: 24px; 
-            margin-bottom: 5px; 
-        }
-        p.subtitle { 
-            text-align: center; 
-            color: #8d99ae; 
-            margin-top: 0; 
-            margin-bottom: 20px; 
-            font-size: 14px; 
-        }
-        
-        /* 顶部控制区域（保留旧版的精致圆角和阴影） */
-        .controls { 
-            background: white; 
-            padding: 15px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
-            display: flex; 
-            gap: 10px; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            border: 1px solid #edf2f7;
-        }
-        select { 
-            padding: 10px 12px; 
-            border-radius: 8px; 
-            border: 1px solid #cbd5e1; 
-            font-size: 16px; 
-            flex-grow: 1; 
-            cursor: pointer; 
-            outline: none; 
-            background-color: #fff;
-        }
-        select:focus {
-            border-color: #3182ce;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #3182ce;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        button:hover { background-color: #2b6cb0; }
-        button:disabled { background-color: #cbd5e1; cursor: not-allowed; }
-        
-        /* 单词列表容器 */
-        #vocab-container { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
-        
-        /* 旧版经典的【卡片】样式：左侧蓝色竖条、右侧中文隐藏 */
-        .word-row { 
-            background: white; 
-            padding: 14px 20px; 
-            border-radius: 10px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border: 1px solid #e2e8f0; 
-            border-left: 5px solid #3182ce; /* 旧版标志性的左侧蓝条 */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
-            transition: all 0.2s ease; 
-            cursor: pointer; 
-        }
-        .word-row:hover { 
-            border-color: #3182ce; 
-            background-color: #f7fafc; 
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        
-        .word { 
-            font-size: 18px; 
-            font-weight: 600; 
-            color: #1a202c; 
-        }
-        
-        /* 默认隐藏中文（防偷看背诵模式） */
-        .translation { 
-            font-size: 16px; 
-            color: #2f855a; 
-            background-color: #c6f6d5; 
-            padding: 4px 10px; 
-            border-radius: 6px; 
-            opacity: 0; 
-            transition: opacity 0.2s ease; 
-            font-weight: 500;
-        }
-        
-        /* 鼠标悬停（电脑）或点击/长按（手机）时显示中文 */
-        .word-row:hover .translation, 
-        .word-row:active .translation { 
-            opacity: 1; 
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>背单词</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.container { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); padding: 36px 40px; width: 560px; max-width: 95vw; }
+h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px; }
 
-        /* ---------------- 以下为默写模式专属 UI ---------------- */
-        .quiz-card {
-            background: white;
-            padding: 30px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            display: none; /* 默认隐藏 */
-            margin-bottom: 15px;
-        }
-        .progress-text { color: #718096; font-size: 14px; margin-bottom: 5px; }
-        .progress-bar-bg { background: #edf2f7; height: 6px; border-radius: 3px; margin-bottom: 25px; overflow: hidden;}
-        .progress-bar-fill { background: #48bb78; height: 100%; width: 0%; transition: width 0.3s ease; }
-        .chinese-prompt { font-size: 32px; font-weight: bold; color: #2d3748; margin-bottom: 15px;}
-        input[type="text"] {
-            width: 80%; padding: 12px; font-size: 20px; text-align: center;
-            border: 2px solid #cbd5e1; border-radius: 10px; outline: none; margin-bottom: 15px;
-        }
-        input[type="text"]:focus { border-color: #3182ce; }
-        .feedback { font-size: 16px; min-height: 24px; font-weight: 500; }
-        .feedback.success { color: #48bb78; }
-        .feedback.error { color: #e53e3e; }
-        /* ----------------------------------------------------- */
-        
-        .tips { text-align: center; color: #a0aec0; font-size: 12px; margin-top: 30px; }
-        .error { 
-            color: #e53e3e; text-align: center; padding: 20px; width: 100%; 
-            background: #fff5f5; border-radius: 8px; border: 1px solid #feb2b2;
-        }
-    </style>
-</head>
-<body>
+/* Input page (下拉选择) */
+#input-page select { width: 100%; padding: 12px; border: 1.5px solid #d0d7f0; border-radius: 10px; font-size: 1rem; color: #3b4a6b; outline: none; background-color: #f7f8fc; cursor: pointer; }
+#input-page select:focus { border-color: #5b7fff; background-color: #fff; }
+.textarea-hint { font-size: 0.85rem; color: #aaa; margin-top: 10px; text-align: center; }
+#start-btn { display: block; width: 100%; margin-top: 20px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1.05rem; cursor: pointer; }
+#start-btn:hover:not(:disabled) { background: #3a5fef; }
+#start-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-    <h1>📝 单词看板 & 默写闯关</h1>
-    <p class="subtitle">💡 平时可看卡片背诵，点击“开始默写”进入自测挑战！</p>
+/* Practice page */
+#practice-page { display: none; }
+.progress-bar-wrap { background: #e8ecff; border-radius: 99px; height: 7px; margin-bottom: 6px; }
+.progress-bar { background: #5b7fff; height: 7px; border-radius: 99px; transition: width .4s; }
+.progress-text { text-align: right; font-size: 0.8rem; color: #999; margin-bottom: 20px; }
+.chinese-word { text-align: center; font-size: 2rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 2px; }
+.hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
 
-    <div class="controls">
-        <select id="vocab-select">
-            <option value="" disabled selected>-- 请选择词汇表 --</option>
-            <option value="lesson_1">第一课词汇 (Lesson 1)</option>
-        </select>
-        <button id="quiz-btn" disabled>开始默写</button>
-    </div>
-
-    <div id="quiz-card" class="quiz-card">
-        <div class="progress-text" id="progress-text">进度：0 / 0</div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>
-        <div class="chinese-prompt" id="chinese-prompt"></div>
-        <input type="text" id="answer-input" placeholder="输入英文，全对自动切题..." autocomplete="off" autocapitalize="off" spellcheck="false">
-        <div class="feedback" id="feedback-text"></div>
-    </div>
-
-    <div id="vocab-container">
-        <div style="text-align: center; color: #a0aec0; padding: 40px; width: 100%;">请选择上方词汇表开始复习</div>
-    </div>
-    
-    <div class="tips">这是一套无后端的纯静态调用方案，所有的修改都在你自己的 GitHub 仓库中完成。</div>
-
-    <script>
-        // ==========================================
-        // ⚠️ 请在这里填入你真实的 GitHub 用户名 ⚠️
-        const GITHUB_USERNAME = "你的GitHub用户名"; 
-        // ==========================================
-
-        const selectEl = document.getElementById('vocab-select');
-        const quizBtn = document.getElementById('quiz-btn');
-        const vocabContainer = document.getElementById('vocab-container');
-        const quizCard = document.getElementById('quiz-card');
-        const chinesePrompt = document.getElementById('chinese-prompt');
-        const answerInput = document.getElementById('answer-input');
-        const feedbackText = document.getElementById('feedback-text');
-        const progressText = document.getElementById('progress-text');
-        const progressBar = document.getElementById('progress-bar');
-        
-        const REPO_NAME = window.location.pathname.split('/')[1]; 
-
-        let currentWords = [];
-        let quizWords = [];
-        let currentIndex = 0;
-
-        selectEl.addEventListener('change', function() {
-            if (this.value) {
-                quizBtn.disabled = false;
-                quizCard.style.display = 'none'; // 切换表时，隐藏上一次的默写卡片
-                loadVocabulary(this.value);
-            }
-        });
-
-        // 1. 核心函数：加载数据并渲染【旧版卡片模式】
-        async function loadVocabulary(fileName) {
-            vocabContainer.innerHTML = '<div style="text-align: center; color: #718096; width:100%;">正在加载词汇...</div>';
-            const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/vocabulary/${fileName}.json`;
-
-            try {
-                const response = await fetch(fileUrl);
-                if (!response.ok) throw new Error(`请求失败 (HTTP 状态码: ${response.status})`);
-                currentWords = await response.json();
-                renderCards(currentWords);
-            } catch (error) {
-                vocabContainer.innerHTML = `<div class="error">❌ 载入失败！请确认仓库中 <b>vocabulary/${fileName}.json</b> 是否存在。</div>`;
-                console.error(error);
-            }
-        }
-
-        // 2. 渲染【旧版精美卡片】
-        function renderCards(wordsArray) {
-            vocabContainer.innerHTML = '';
-            if (wordsArray.length === 0) return;
-
-            wordsArray.forEach(item => {
-                const row = document.createElement('div');
-                row.className = 'word-row';
-                row.innerHTML = `
-                    <div class="word">${item.word}</div>
-                    <div class="translation">${item.translation}</div>
-                `;
-                vocabContainer.appendChild(row);
-            });
-        }
-
-        // 3. 点击【开始默写】逻辑
-        quizBtn.addEventListener('click', () => {
-            if (currentWords.length === 0) return;
-            
-            // 隐藏普通的卡片列表，让路给默写卡片
-            vocabContainer.style.display = 'none';
-            quizCard.style.display = 'block';
-
-            // 随机打乱题目
-            quizWords = [...currentWords].sort(() => Math.random() - 0.5);
-            currentIndex = 0;
-            
-            showQuestion();
-            answerInput.focus();
-        });
-
-        function showQuestion() {
-            if (currentIndex >= quizWords.length) {
-                chinesePrompt.textContent = "🎉 通关！太棒了！";
-                answerInput.style.display = 'none';
-                feedbackText.textContent = "刷新页面可以重新浏览背诵卡片。";
-                feedbackText.className = "feedback success";
-                updateProgress();
-                return;
-            }
-            answerInput.style.display = 'inline-block';
-            chinesePrompt.textContent = quizWords[currentIndex].translation;
-            answerInput.value = '';
-            feedbackText.textContent = '';
-            updateProgress();
-        }
-
-        function updateProgress() {
-            progressText.textContent = `进度：${currentIndex} / ${quizWords.length}`;
-            const percent = (currentIndex / quizWords.length) * 100;
-            progressBar.style.width = `${percent}%`;
-        }
-
-        // 4. 监听默写输入
-        answerInput.addEventListener('input', function() {
-            const userAnswer = this.value.trim().toLowerCase();
-            const correctAnswer = quizWords[currentIndex].word.toLowerCase();
-
-            if (userAnswer.length >= correctAnswer.length) {
-                if (userAnswer === correctAnswer) {
-                    feedbackText.textContent = "✨ 答对了！";
-                    feedbackText.className = "feedback success";
-                    setTimeout(() => {
-                        currentIndex++;
-                        showQuestion();
-                    }, 600);
-                } else {
-                    feedbackText.textContent = "❌ 拼写不对哦！";
-                    feedbackText.className = "feedback error";
-                }
-            } else {
-                feedbackText.textContent = "";
-                feedbackText.className = "feedback";
-            }
-        });
-    </script>
-</body>
-</html>
+.letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; cursor: text; }
+.letter-box { width: 36px; height: 44px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.3rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
+.letter-box.hint-char  { color: #f59e0b; border-bottom-color: #f59e0b; }
+.letter-box.typed-char { color: #3b4a6b; border-bottom-color: #5b7fff; }
+.letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; }
+.letter-box.cursor { border-bottom-color: #5b7fff; }
+.letter-box.cursor::after { content:''; display:block; width:2px; height:18px; background:#5b7fff; position:absolute; bottom:4px; animation: blink .8s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 5
