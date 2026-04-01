@@ -11,9 +11,16 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100
 h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px; }
 
 /* Input page */
-#input-page select { width: 100%; padding: 12px; border: 1.5px solid #d0d7f0; border-radius: 10px; font-size: 1rem; color: #3b4a6b; outline: none; background-color: #f7f8fc; cursor: pointer; margin-bottom: 16px; }
-#input-page select:focus { border-color: #5b7fff; background-color: #fff; }
-.textarea-hint { font-size: 0.85rem; color: #aaa; margin-top: -10px; margin-bottom: 16px; text-align: center; }
+.vocab-checklist { border: 1.5px solid #d0d7f0; border-radius: 10px; background: #f7f8fc; max-height: 220px; overflow-y: auto; margin-bottom: 10px; }
+.select-all-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1.5px solid #d0d7f0; background: #eef1ff; border-radius: 10px 10px 0 0; }
+.select-all-row label { font-size: 0.85rem; color: #5b7fff; cursor: pointer; font-weight: 600; }
+.vocab-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #eef0f8; cursor: pointer; transition: background .15s; }
+.vocab-item:last-child { border-bottom: none; }
+.vocab-item:hover { background: #eef1ff; }
+.vocab-item input[type=checkbox], .select-all-row input[type=checkbox] { width: 16px; height: 16px; accent-color: #5b7fff; cursor: pointer; flex-shrink: 0; }
+.vocab-item label { cursor: pointer; font-size: 0.95rem; color: #3b4a6b; flex: 1; }
+.vocab-loading { padding: 16px; text-align: center; color: #aaa; font-size: 0.9rem; }
+.selected-hint { font-size: 0.8rem; color: #999; margin-bottom: 12px; min-height: 18px; }
 .mode-row { display: flex; gap: 10px; margin-bottom: 16px; }
 .mode-btn { flex: 1; padding: 10px 6px; border: 1.5px solid #d0d7f0; border-radius: 10px; background: #f7f8fc; color: #718096; font-size: 0.9rem; cursor: pointer; text-align: center; transition: all .2s; }
 .mode-btn.active { border-color: #5b7fff; background: #eef1ff; color: #5b7fff; font-weight: 600; }
@@ -29,13 +36,11 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .hold-hint { font-size: 0.75rem; color: #b0b8d0; text-align: center; margin-bottom: 4px; min-height: 18px; }
 .reveal-bar { height: 4px; background: #e8ecff; border-radius: 99px; margin-bottom: 16px; overflow: hidden; }
 .reveal-bar-fill { height: 100%; width: 0%; background: #5b7fff; border-radius: 99px; }
-
 .card { border: 1.5px solid #e2e8f0; border-radius: 16px; background: #f7f8fc; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; margin-bottom: 20px; gap: 16px; user-select: none; -webkit-user-select: none; cursor: pointer; transition: background .15s; }
 .card.pressing { background: #eef1ff; }
 .card-en { font-size: 1.8rem; font-weight: 700; color: #3b4a6b; text-align: center; letter-spacing: 1px; transition: opacity .15s; }
 .card-zh { font-size: 1.3rem; color: #718096; text-align: center; transition: opacity .15s; }
 .card-divider { width: 40px; height: 2px; background: #e2e8f0; border-radius: 99px; }
-
 .nav-row { display: flex; gap: 10px; align-items: center; }
 .btn-prev { flex: 1; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; background: #f7f8fc; color: #718096; font-size: 1rem; cursor: pointer; }
 .btn-prev:hover:not(:disabled) { background: #e2e8f0; }
@@ -49,14 +54,12 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 </head>
 <body>
 <div class="container">
-
   <div id="input-page">
     <h1>📚 词汇背诵</h1>
-    <select id="vocab-select">
-      <option value="" disabled selected>-- 请选择练习内容 --</option>
-      <option value="g3_t2_u4">三年级下册 - 第四单元 (Animals)</option>
-      <option value="g3_t2_u5">三年级下册 - 第五单元 (Like)</option>
-    </select>
+    <div class="vocab-checklist" id="vocab-list">
+      <div class="vocab-loading">正在加载词库列表…</div>
+    </div>
+    <div class="selected-hint" id="selected-hint"></div>
     <div class="mode-row">
       <div class="mode-btn active" data-mode="both">全显示</div>
       <div class="mode-btn" data-mode="en2zh">英 → 中</div>
@@ -72,7 +75,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     <div class="reveal-bar"><div class="reveal-bar-fill" id="reveal-fill"></div></div>
     <div class="card" id="card">
       <div class="card-en" id="card-en"></div>
-      <div class="card-divider" id="card-divider"></div>
+      <div class="card-divider"></div>
       <div class="card-zh" id="card-zh"></div>
     </div>
     <div class="nav-row">
@@ -82,115 +85,125 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     </div>
     <button id="finish-btn">结束返回</button>
   </div>
-
 </div>
 <script>
 (function(){
-  const GITHUB_USERNAME = "kirasunil4807-dotcom";
-  const REPO_NAME = "enlearner";
+  const GITHUB_USERNAME = 'kirasunil4807-dotcom';
+  const REPO_NAME = 'enlearner';
+  const BASE = 'https://raw.githubusercontent.com/'+GITHUB_USERNAME+'/'+REPO_NAME+'/main/';
 
-  var words = [], cur = 0, mode = 'both';
-  var revealed = false, pressTimer = null;
-  var HOLD_MS = 400;
+  var words=[], cur=0, mode='both';
+  var revealed=false, pressTimer=null;
+  var HOLD_MS=400;
 
   function $(id){ return document.getElementById(id); }
-  function showPage(id){
-    ['input-page','review-page'].forEach(function(p){
-      $(p).style.display = p===id ? 'block' : 'none';
-    });
+  function showPage(id){ ['input-page','review-page'].forEach(function(p){ $(p).style.display=p===id?'block':'none'; }); }
+
+  // ---- 动态加载词库列表 ----
+  (async function loadIndex(){
+    try {
+      var res = await fetch(BASE+'index.json');
+      var list = await res.json();
+      var container = $('vocab-list');
+      container.innerHTML='';
+
+      var allRow=document.createElement('div'); allRow.className='select-all-row';
+      var allCb=document.createElement('input'); allCb.type='checkbox'; allCb.id='cb-all';
+      var allLbl=document.createElement('label'); allLbl.htmlFor='cb-all'; allLbl.textContent='全选';
+      allRow.appendChild(allCb); allRow.appendChild(allLbl);
+      container.appendChild(allRow);
+
+      list.forEach(function(item){
+        var row=document.createElement('div'); row.className='vocab-item';
+        var cb=document.createElement('input'); cb.type='checkbox'; cb.value=item.value; cb.id='cb-'+item.value; cb.className='vocab-cb';
+        var lbl=document.createElement('label'); lbl.htmlFor='cb-'+item.value; lbl.textContent=item.label;
+        row.appendChild(cb); row.appendChild(lbl);
+        row.onclick=function(e){ if(e.target!==cb) cb.checked=!cb.checked; updateSelection(); };
+        cb.onchange=updateSelection;
+        container.appendChild(row);
+      });
+
+      allCb.onchange=function(){
+        document.querySelectorAll('.vocab-cb').forEach(function(c){ c.checked=allCb.checked; });
+        updateSelection();
+      };
+    } catch(e) {
+      $('vocab-list').innerHTML='<div class="vocab-loading">词库列表加载失败</div>';
+    }
+  })();
+
+  function getChecked(){ return Array.from(document.querySelectorAll('.vocab-cb:checked')).map(function(c){ return c.value; }); }
+
+  function updateSelection(){
+    var checked=getChecked(), all=document.querySelectorAll('.vocab-cb'), allCb=$('cb-all');
+    if(allCb) allCb.checked=checked.length===all.length&&all.length>0;
+    $('go-btn').disabled=checked.length===0;
+    $('selected-hint').textContent=checked.length>0?'已选 '+checked.length+' 个词库':'';
   }
 
-  $('vocab-select').addEventListener('change', function(){
-    $('go-btn').disabled = !this.value;
-  });
-
   document.querySelectorAll('.mode-btn').forEach(function(btn){
-    btn.onclick = function(){
+    btn.onclick=function(){
       document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      mode = btn.dataset.mode;
+      btn.classList.add('active'); mode=btn.dataset.mode;
     };
   });
 
-  $('go-btn').onclick = async function(){
-    var fileName = $('vocab-select').value;
-    if(!fileName) return;
-    $('go-btn').textContent = '正在加载...';
-    $('go-btn').disabled = true;
-    var url = 'https://raw.githubusercontent.com/'+GITHUB_USERNAME+'/'+REPO_NAME+'/main/vocabulary/'+fileName+'.json';
+  $('go-btn').onclick=async function(){
+    var selected=getChecked(); if(!selected.length) return;
+    $('go-btn').textContent='正在加载…'; $('go-btn').disabled=true;
     try {
-      var res = await fetch(url);
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      var data = await res.json();
-      words = data.map(function(item){
-        return { en: item.word.trim(), zh: item.translation.trim() };
-      });
-      if(!words.length){ alert('文件内容为空！'); return; }
-      cur = 0;
-      showPage('review-page');
-      renderCard();
+      var all=await Promise.all(selected.map(function(file){
+        return fetch(BASE+'vocabulary/'+file+'.json').then(function(r){ if(!r.ok) throw new Error(file+' 加载失败'); return r.json(); });
+      }));
+      words=[];
+      all.forEach(function(data){ data.forEach(function(item){ words.push({en:item.word.trim(), zh:item.translation.trim()}); }); });
+      if(!words.length){ alert('所选词库内容为空！'); return; }
+      cur=0; showPage('review-page'); renderCard();
     } catch(e) {
-      alert('❌ 载入失败！\n请确认 GitHub 仓库 main 分支中存在 vocabulary/'+fileName+'.json');
-      console.error(e);
+      alert('❌ 载入失败：'+e.message);
     } finally {
-      $('go-btn').textContent = '开始背诵 →';
-      $('go-btn').disabled = false;
+      $('go-btn').textContent='开始背诵 →'; updateSelection();
     }
   };
 
   function renderCard(){
-    var w = words[cur], total = words.length;
-    $('prog-bar').style.width = ((cur+1)/total*100).toFixed(0)+'%';
-    $('prog-text').textContent = (cur+1)+' / '+total;
-    $('card-counter').textContent = (cur+1)+' / '+total;
-    $('prev-btn').disabled = cur === 0;
-    $('next-btn').textContent = cur === total-1 ? '完成 ✓' : '下一个 →';
-    revealed = false;
-    $('reveal-fill').style.transition = 'none';
-    $('reveal-fill').style.width = '0%';
-    $('card-en').textContent = w.en;
-    $('card-zh').textContent = w.zh;
-    if(mode === 'both'){
-      $('card-en').style.opacity = '1';
-      $('card-zh').style.opacity = '1';
-      $('hold-hint').textContent = '';
-    } else if(mode === 'en2zh'){
-      $('card-en').style.opacity = '1';
-      $('card-zh').style.opacity = '0';
-      $('hold-hint').textContent = '按住显示中文';
+    var w=words[cur], total=words.length;
+    $('prog-bar').style.width=((cur+1)/total*100).toFixed(0)+'%';
+    $('prog-text').textContent=(cur+1)+' / '+total;
+    $('card-counter').textContent=(cur+1)+' / '+total;
+    $('prev-btn').disabled=cur===0;
+    $('next-btn').textContent=cur===total-1?'完成 ✓':'下一个 →';
+    revealed=false;
+    $('reveal-fill').style.transition='none'; $('reveal-fill').style.width='0%';
+    $('card-en').textContent=w.en; $('card-zh').textContent=w.zh;
+    if(mode==='both'){
+      $('card-en').style.opacity='1'; $('card-zh').style.opacity='1'; $('hold-hint').textContent='';
+    } else if(mode==='en2zh'){
+      $('card-en').style.opacity='1'; $('card-zh').style.opacity='0'; $('hold-hint').textContent='按住显示中文';
     } else {
-      $('card-en').style.opacity = '0';
-      $('card-zh').style.opacity = '1';
-      $('hold-hint').textContent = '按住显示英文';
+      $('card-en').style.opacity='0'; $('card-zh').style.opacity='1'; $('hold-hint').textContent='按住显示英文';
     }
   }
 
   function startPress(){
-    if(mode === 'both' || revealed) return;
-    var fill = $('reveal-fill');
-    fill.style.transition = 'width '+HOLD_MS+'ms linear';
-    fill.style.width = '100%';
+    if(mode==='both'||revealed) return;
+    var fill=$('reveal-fill');
+    fill.style.transition='width '+HOLD_MS+'ms linear'; fill.style.width='100%';
     $('card').classList.add('pressing');
-    pressTimer = setTimeout(function(){
-      revealed = true;
-      if(mode === 'en2zh') $('card-zh').style.opacity = '1';
-      else $('card-en').style.opacity = '1';
-      $('hold-hint').textContent = '';
-      $('card').classList.remove('pressing');
+    pressTimer=setTimeout(function(){
+      revealed=true;
+      if(mode==='en2zh') $('card-zh').style.opacity='1'; else $('card-en').style.opacity='1';
+      $('hold-hint').textContent=''; $('card').classList.remove('pressing');
     }, HOLD_MS);
   }
 
   function endPress(){
-    if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; }
+    if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
     $('card').classList.remove('pressing');
-    if(!revealed){
-      var fill = $('reveal-fill');
-      fill.style.transition = 'width 0.15s linear';
-      fill.style.width = '0%';
-    }
+    if(!revealed){ var fill=$('reveal-fill'); fill.style.transition='width 0.15s linear'; fill.style.width='0%'; }
   }
 
-  var card = $('card');
+  var card=$('card');
   card.addEventListener('mousedown', startPress);
   card.addEventListener('mouseup', endPress);
   card.addEventListener('mouseleave', endPress);
@@ -198,12 +211,9 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   card.addEventListener('touchend', function(e){ e.preventDefault(); endPress(); }, {passive:false});
   card.addEventListener('touchcancel', endPress);
 
-  $('prev-btn').onclick = function(){ if(cur>0){ cur--; renderCard(); } };
-  $('next-btn').onclick = function(){
-    if(cur < words.length-1){ cur++; renderCard(); }
-    else { showPage('input-page'); }
-  };
-  $('finish-btn').onclick = function(){ showPage('input-page'); };
+  $('prev-btn').onclick=function(){ if(cur>0){ cur--; renderCard(); } };
+  $('next-btn').onclick=function(){ if(cur<words.length-1){ cur++; renderCard(); } else { showPage('input-page'); } };
+  $('finish-btn').onclick=function(){ showPage('input-page'); };
 })();
 </script>
 </body>
