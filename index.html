@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>英语默写</title>
+<title>英语默写闯关</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-.container { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); padding: 36px 40px; width: 680px; max-width: 95vw; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding-bottom: 50px; }
+.container { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); padding: 36px 40px; width: 680px; max-width: 95vw; position: relative; }
 h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px; }
 
 /* Input page */
@@ -34,11 +34,12 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; } 
 .letter-box.hint-char  { color: #f59e0b; border-bottom-color: #f59e0b; }
 .letter-box.typed-char { color: #3b4a6b; border-bottom-color: #5b7fff; }
-.letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; }
+.letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; animation: correct-pop 0.3s ease; } /* 正确时增加一个缩放动画 */
 .letter-box.cursor { border-bottom-color: #5b7fff; }
 .letter-box.cursor::after { content:''; display:block; width:2px; height:16px; background:#5b7fff; position:absolute; bottom:4px; animation: blink .8s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+@keyframes correct-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 .letter-boxes.shake { animation: shake .3s; }
 
 /* Pencil Input */
@@ -70,15 +71,18 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 #redo-btn:hover { background: #eef1ff; }
 #restart-btn { display: block; width: 100%; margin-top: 10px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; }
 #restart-btn:hover { background: #3a5fef; }
+
+/* 音频控制（隐藏） */
+audio { display: none; }
 </style>
 </head>
 <body>
 <div class="container">
   <div id="input-page">
-    <h1>📖 英语默写</h1>
+    <h1>📖 英语默写闯关</h1>
     <select id="vocab-select">
       <option value="" disabled selected>-- 请选择练习内容 --</option>
-      <option value="g3_t2_u4">三年级下册 - 第四单元</option>
+      <option value="g3_t2_u4">三年级下册 - 第四单元 (Animals)</option>
     </select>
     <div class="textarea-hint">数据将自动从 GitHub 仓库远程拉取</div>
     <button id="start-btn" disabled>开始练习 →</button>
@@ -121,6 +125,9 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   </div>
 </div>
 
+<audio id="audio-success" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3" preload="auto"></audio>
+<audio id="audio-error" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" preload="auto"></audio>
+<audio id="audio-cheer" src="https://assets.mixkit.co/active_storage/sfx/1993/1993-preview.mp3" preload="auto"></audio>
 <script>
 (function(){
   const GITHUB_USERNAME = "kirasunil4807-dotcom"; 
@@ -131,6 +138,11 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   var locked=false, typed='';
   var revealedPos=[], shuffledIdx=[];
   var prevState=null; 
+
+  // 获取音效 DOM 元素
+  const soundSuccess = document.getElementById('audio-success');
+  const soundError = document.getElementById('audio-error');
+  const soundCheer = document.getElementById('audio-cheer');
 
   function $(id){ return document.getElementById(id); }
   
@@ -260,7 +272,13 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   };
 
   function loadQuestion(){
-    if(cur>=queue.length){ showResults(); return; }
+    if(cur>=queue.length){ 
+        // 附加赠送：全通关时放一段简短的欢呼声
+        soundCheer.currentTime = 0;
+        soundCheer.play().catch(e => console.log("Чеер sound auto-play prevented."));
+        showResults(); 
+        return; 
+    }
     wrongAttempts=0; 
     locked=false; typed='';
     initHints();
@@ -288,31 +306,24 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     renderBoxes();
   }
   
-  /* ⬇️ 核心修复逻辑：抛开大小写、空格和标点，只比对纯字母 ⬇️ */
+  // 核心匹配与音效逻辑
   function doSubmit(){
     if(locked||!typed) return;
     
-    // 1. 获取去掉空格和所有标点符号后的纯小写答案
     var correctRaw = queue[cur].en.toLowerCase().replace(/[^a-z]/g, '');
-    
-    // 2. 获取用户已经键入的字母，并拼合被随机提示放出的字母
     var w = queue[cur];
-    var letterSlots = getLetterSlots(w.en); // 找出所有应填字母的位置
+    var letterSlots = getLetterSlots(w.en); 
     
-    // 找出所有没有被系统强制提示出来的坑位（也就是留给用户打字的坑位）
     var nonHintLetterSlots = letterSlots.filter(p => revealedPos.indexOf(p) < 0);
     
-    // 按照顺序把手写的字母填回坑位中
     var answerArray = [];
     var typedCharIdx = 0;
     
     for(let i=0; i<w.en.length; i++) {
       if(isLetter(w.en[i])) {
         if(revealedPos.indexOf(i) >= 0) {
-          // 这一格是被提示出来的正确字母
           answerArray.push(w.en[i].toLowerCase());
         } else {
-          // 这一格是用户自己打的字母
           if(typedCharIdx < typed.length) {
             answerArray.push(typed[typedCharIdx].toLowerCase());
             typedCharIdx++;
@@ -323,8 +334,12 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     
     var answerRaw = answerArray.join('');
     
-    // 3. 终极比对
     if(answerRaw === correctRaw){
+      // ⬇️ 🎯 核心音效部分：答对 ⬇️
+      soundSuccess.currentTime = 0; // 重置音频，防止连答时无声
+      soundSuccess.play().catch(e => console.log("Успех sound auto-play prevented."));
+      // ⬆️ 🎯 核心音效部分 ⬆️
+
       locked=true;
       $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ 
         if (!b.classList.contains('space') && !b.classList.contains('symbol')) {
@@ -337,6 +352,11 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
       $('pencil-input').disabled=true;
       setTimeout(function(){ cur++; loadQuestion(); }, 900);
     } else {
+      // ⬇️ 🎯 核心音效部分：答错 ⬇️
+      soundError.currentTime = 0; // 重置音频
+      soundError.play().catch(e => console.log("Ошибка sound auto-play prevented."));
+      // ⬆️ 🎯 核心音效部分 ⬆️
+
       wrongAttempts++;
       if(wrongAttempts>2){
         locked=true;
@@ -360,7 +380,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
       renderBoxes();
     }
   }
-  /* ⬆️ 核心修复逻辑结束 ⬆️ */
   
   function doSkip(){
     prevState={
