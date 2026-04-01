@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>背单词</title>
+<title>英语默写</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-.container { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); padding: 36px 40px; width: 560px; max-width: 95vw; }
+.container { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); padding: 36px 40px; width: 680px; max-width: 95vw; }
 h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px; }
 
-/* Input page (下拉选择) */
+/* Input page */
 #input-page select { width: 100%; padding: 12px; border: 1.5px solid #d0d7f0; border-radius: 10px; font-size: 1rem; color: #3b4a6b; outline: none; background-color: #f7f8fc; cursor: pointer; }
 #input-page select:focus { border-color: #5b7fff; background-color: #fff; }
 .textarea-hint { font-size: 0.85rem; color: #aaa; margin-top: 10px; text-align: center; }
@@ -23,36 +23,26 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .progress-bar-wrap { background: #e8ecff; border-radius: 99px; height: 7px; margin-bottom: 6px; }
 .progress-bar { background: #5b7fff; height: 7px; border-radius: 99px; transition: width .4s; }
 .progress-text { text-align: right; font-size: 0.8rem; color: #999; margin-bottom: 20px; }
-.chinese-word { text-align: center; font-size: 2rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 2px; }
+.chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
 
-.letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; cursor: text; }
-.letter-box { width: 36px; height: 44px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.3rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
+/* 字母区域：空格依然保留下划线，但颜色变浅，用于视觉隔离 */
+.letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
+.letter-box { width: 28px; height: 36px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.2rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
+.letter-box.space { border-bottom-color: #e2e8f0; width: 20px; } /* 空格下划线变浅，拉开单词间距 */
+.letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; } /* 标点符号不占下划线 */
 .letter-box.hint-char  { color: #f59e0b; border-bottom-color: #f59e0b; }
 .letter-box.typed-char { color: #3b4a6b; border-bottom-color: #5b7fff; }
 .letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; }
 .letter-box.cursor { border-bottom-color: #5b7fff; }
-.letter-box.cursor::after { content:''; display:block; width:2px; height:18px; background:#5b7fff; position:absolute; bottom:4px; animation: blink .8s infinite; }
+.letter-box.cursor::after { content:''; display:block; width:2px; height:16px; background:#5b7fff; position:absolute; bottom:4px; animation: blink .8s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
 .letter-boxes.shake { animation: shake .3s; }
 
-/* Pencil Input For iPad Safari & Scribble */
+/* Pencil Input */
 .pencil-input-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
-.pencil-input { 
-  width: 100%; 
-  max-width: 320px; 
-  border: 1px solid #d0d7f0; 
-  background: #f7f8fc;
-  border-radius: 8px;
-  padding: 10px; 
-  font-size: 1.1rem; 
-  text-align: center; 
-  outline: none; 
-  color: #3b4a6b;
-  caret-color: #5b7fff; 
-  letter-spacing: 2px; 
-}
+.pencil-input { width: 100%; max-width: 400px; border: 1px solid #d0d7f0; background: #f7f8fc; border-radius: 8px; padding: 10px; font-size: 1.1rem; text-align: center; outline: none; color: #3b4a6b; caret-color: #5b7fff; letter-spacing: 1px; }
 .pencil-input:focus { border-color: #5b7fff; background: #fff; }
 
 .btn-row { display: flex; gap: 10px; }
@@ -72,7 +62,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .score-lbl { font-size: 0.75rem; opacity: .85; margin-top: 2px; }
 .result-section { margin-bottom: 18px; }
 .result-section h3 { font-size: 0.9rem; color: #718096; margin-bottom: 8px; }
-.result-tag { display: inline-block; border-radius: 6px; padding: 4px 10px; margin: 3px; font-size: 0.88rem; }
+.result-tag { display: inline-block; border-radius: 6px; padding: 6px 12px; margin: 4px; font-size: 0.88rem; }
 .result-tag.missed  { border: 1px solid #f59e0b; color: #92400e; background: #fffbeb; }
 .result-tag.skipped { border: 1px solid #e2e8f0; color: #718096; background: #f7f8fc; }
 #redo-btn     { display: block; width: 100%; margin-top: 16px; padding: 12px; background: #f7f8fc; color: #5b7fff; border: 1.5px solid #5b7fff; border-radius: 10px; font-size: 1rem; cursor: pointer; }
@@ -84,9 +74,10 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 <body>
 <div class="container">
   <div id="input-page">
-    <h1>📖 背单词</h1>
+    <h1>📖 英语默写</h1>
     <select id="vocab-select">
-      <option value="" disabled selected>-- 请选择词汇表 --</option>
+      <option value="" disabled selected>-- 请选择练习内容 --</option>
+      <option value="lesson_1">第一课词汇 (Lesson 1)</option>
       <option value="g3_t2_u4">三年级下册 - 第四单元</option>
     </select>
     <div class="textarea-hint">数据将自动从 GitHub 仓库远程拉取</div>
@@ -101,7 +92,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     <div class="letter-boxes" id="letter-boxes"></div>
     
     <div class="pencil-input-wrap">
-      <input class="pencil-input" id="pencil-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="在此处手写或输入">
+      <input class="pencil-input" id="pencil-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="在此处手写或输入字母">
     </div>
     
     <div class="btn-row">
@@ -126,15 +117,13 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
       <div id="skipped-list"></div>
     </div>
     <button id="redo-btn">重练错题 / 跳过题</button>
-    <button id="restart-btn">重新选择词汇表</button>
+    <button id="restart-btn">重新选择练习内容</button>
   </div>
 </div>
 
 <script>
 (function(){
-  // 🎯 锁死用户名
   const GITHUB_USERNAME = "kirasunil4807-dotcom"; 
-  // 🎯 锁死仓库名，彻底解决路径解析失败导致白屏的问题
   const REPO_NAME = "enlearner"; 
 
   var words=[], queue=[], results=[];
@@ -164,49 +153,78 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     $('prog-bar').style.width = pct+'%';
     $('prog-text').textContent = cur+' / '+queue.length;
   }
+
+  function isLetter(c) {
+    return /^[a-zA-Z]$/.test(c);
+  }
+
+  function getLetterSlots(str) {
+    let slots = [];
+    for(let i=0; i<str.length; i++) {
+      if(isLetter(str[i])) slots.push(i);
+    }
+    return slots;
+  }
   
   function initHints(){
-    var len = queue[cur].en.length;
-    shuffledIdx = shuffle(Array.from({length:len}, function(_,i){ return i; }));
+    var str = queue[cur].en;
+    var letterSlots = getLetterSlots(str);
+    shuffledIdx = shuffle(letterSlots.slice());
     revealedPos = [];
   }
   
   function hintLabelText(){
     if(!revealedPos.length) return '';
     return queue[cur].en.split('').map(function(c,i){
+      if (!isLetter(c)) return c; 
       return revealedPos.indexOf(i) >= 0 ? c : '_';
     }).join(' ');
   }
   
-  function nonHintSlots(){
-    var res=[];
-    for(var i=0;i<queue[cur].en.length;i++)
-      if(revealedPos.indexOf(i)<0) res.push(i);
-    return res;
-  }
-  
   function reconstructAnswer(){
-    var w=queue[cur], slots=nonHintSlots(), arr=w.en.split('');
-    slots.forEach(function(pos,si){ arr[pos]=typed[si]||''; });
+    var w=queue[cur], arr=w.en.split('');
+    var letterSlots = getLetterSlots(w.en);
+    letterSlots.forEach(function(pos, si){
+      if(revealedPos.indexOf(pos) < 0) {
+        let userCharIdx = letterSlots.slice(0, pos).filter(p => revealedPos.indexOf(p) < 0).length;
+        arr[pos] = typed[userCharIdx] || '';
+      }
+    });
     return arr.join('');
   }
   
   function renderBoxes(){
-    var w=queue[cur], el=$('letter-boxes'), slots=nonHintSlots();
+    var w=queue[cur], el=$('letter-boxes');
+    var letterSlots = getLetterSlots(w.en);
     el.innerHTML='';
-    for(var i=0;i<w.en.length;i++){
+    
+    let activeUserCharIdx = typed.length;
+    let nonHintLetterSlots = letterSlots.filter(p => revealedPos.indexOf(p) < 0);
+    let cursorGlobalPos = nonHintLetterSlots[activeUserCharIdx];
+
+    for(var i=0; i<w.en.length; i++){
+      var c = w.en[i];
       var box=document.createElement('div');
-      box.className='letter-box';
-      if(revealedPos.indexOf(i)>=0){
-        box.textContent=w.en[i];
-        box.className+=' hint-char';
+      
+      if (c === ' ') {
+        box.className = 'letter-box space'; // 这里保留了横线，但颜色极浅
+        box.textContent = '';
+      } else if (!isLetter(c)) {
+        box.className = 'letter-box symbol';
+        box.textContent = c;
       } else {
-        var si=slots.indexOf(i);
-        if(si<typed.length){
-          box.textContent=typed[si];
-          box.className+=' typed-char';
+        box.className = 'letter-box';
+        if(revealedPos.indexOf(i) >= 0){
+          box.textContent = c;
+          box.className += ' hint-char';
         } else {
-          if(si===typed.length&&!locked) box.className+=' cursor';
+          let uIdx = nonHintLetterSlots.indexOf(i);
+          if (uIdx >= 0 && uIdx < typed.length) {
+            box.textContent = typed[uIdx];
+            box.className += ' typed-char';
+          } else {
+            if(i === cursorGlobalPos && !locked) box.className += ' cursor';
+          }
         }
       }
       el.appendChild(box);
@@ -226,6 +244,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     $('start-btn').textContent = "正在加载数据...";
     $('start-btn').disabled = true;
 
+    // 🎯 补全了 .json 的后缀
     const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/vocabulary/${fileName}.json`;
 
     try {
@@ -235,10 +254,10 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
         const jsonData = await response.json();
         
         words = jsonData.map(item => {
-            return { en: item.word.toLowerCase().trim(), zh: item.translation.trim() };
+            return { en: item.word.trim(), zh: item.translation.trim() };
         });
 
-        if(!words.length){ alert('词汇表文件内容为空！'); return; }
+        if(!words.length){ alert('文件内容为空！'); return; }
         
         queue=shuffle(words.slice()); results=[]; cur=0; prevState=null;
         $('back-btn').disabled=true;
@@ -253,7 +272,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     }
   };
 
-  // ---------- 原有背诵与交互逻辑保持原样 ----------
   function loadQuestion(){
     if(cur>=queue.length){ showResults(); return; }
     wrongAttempts=0; 
@@ -285,12 +303,16 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   
   function doSubmit(){
     if(locked||!typed) return;
-    var correct=queue[cur].en;
-    var answer=reconstructAnswer();
+    var correct=queue[cur].en.toLowerCase();
+    var answer=reconstructAnswer().toLowerCase();
     
     if(answer===correct){
       locked=true;
-      $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ b.className='letter-box correct-char'; });
+      $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ 
+        if (!b.classList.contains('space') && !b.classList.contains('symbol')) {
+          b.className='letter-box correct-char'; 
+        }
+      });
       results.push({en:queue[cur].en, zh:queue[cur].zh, status: wrongAttempts===0?'correct':'hinted'});
       prevState=null;
       $('back-btn').disabled=true;
@@ -304,14 +326,15 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
         prevState=null;
         $('back-btn').disabled=true;
         $('submit-btn').disabled=true;
-        $('hint-label').textContent='答案：'+correct;
+        $('hint-label').textContent='答案：'+queue[cur].en;
         $('hint-label').classList.add('fail');
-        setTimeout(function(){ cur++; loadQuestion(); }, 1200);
+        setTimeout(function(){ cur++; loadQuestion(); }, 2000); 
         return;
       }
       var el=$('letter-boxes');
       el.classList.add('shake');
       setTimeout(function(){ el.classList.remove('shake'); }, 350);
+      
       revealedPos.push(shuffledIdx[wrongAttempts-1]);
       $('hint-label').textContent=hintLabelText();
       typed='';
@@ -350,8 +373,10 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   
   $('pencil-input').addEventListener('input', function(e){
     if(locked) return;
-    var correct=queue[cur].en;
-    var maxLen = correct.length - revealedPos.length;
+    var str = queue[cur].en;
+    var letterSlots = getLetterSlots(str);
+    var maxLen = letterSlots.length - revealedPos.length;
+    
     var val = e.target.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
     if (val.length > maxLen) { val = val.slice(0, maxLen); }
     typed = val;
@@ -380,7 +405,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
       arr.forEach(function(w){
         var t=document.createElement('span');
         t.className='result-tag '+cls;
-        t.textContent=w.en+' '+w.zh;
+        t.textContent=w.en+' | '+w.zh;
         el.appendChild(t);
       });
     }
