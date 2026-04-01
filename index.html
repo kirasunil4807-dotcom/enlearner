@@ -20,17 +20,26 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .vocab-item input[type=checkbox], .select-all-row input[type=checkbox] { width: 16px; height: 16px; accent-color: #5b7fff; cursor: pointer; flex-shrink: 0; }
 .vocab-item label { cursor: pointer; font-size: 0.95rem; color: #3b4a6b; flex: 1; }
 .vocab-loading { padding: 16px; text-align: center; color: #aaa; font-size: 0.9rem; }
-.selected-hint { font-size: 0.8rem; color: #999; margin-bottom: 16px; min-height: 18px; }
+.selected-hint { font-size: 0.8rem; color: #999; margin-bottom: 12px; min-height: 18px; }
 .textarea-hint { font-size: 0.85rem; color: #aaa; margin-top: 10px; text-align: center; }
 #start-btn { display: block; width: 100%; margin-top: 4px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1.05rem; cursor: pointer; }
 #start-btn:hover:not(:disabled) { background: #3a5fef; }
 #start-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+/* 错题集按钮 */
+.error-bank-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 12px; padding: 12px 16px; background: #fff7ed; color: #c2410c; border: 1.5px solid #fed7aa; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: background .2s; }
+.error-bank-btn:hover:not(:disabled) { background: #ffedd5; }
+.error-bank-btn:disabled { opacity: .4; cursor: not-allowed; }
+.error-bank-badge { background: #f97316; color: #fff; border-radius: 99px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+.error-bank-clear { font-size: 0.78rem; color: #999; text-align: center; margin-top: 8px; cursor: pointer; text-decoration: underline; }
+.error-bank-clear:hover { color: #e05; }
 
 /* Practice page */
 #practice-page { display: none; }
 .progress-bar-wrap { background: #e8ecff; border-radius: 99px; height: 7px; margin-bottom: 6px; }
 .progress-bar { background: #5b7fff; height: 7px; border-radius: 99px; transition: width .4s; }
 .progress-text { text-align: right; font-size: 0.8rem; color: #999; margin-bottom: 20px; }
+.mode-tag { text-align: center; font-size: 0.78rem; color: #f97316; font-weight: 600; margin-bottom: 8px; min-height: 16px; letter-spacing: 1px; }
 .chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
 .letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
@@ -69,6 +78,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .result-tag { display: inline-block; border-radius: 6px; padding: 6px 12px; margin: 4px; font-size: 0.88rem; }
 .result-tag.missed { border: 1px solid #f59e0b; color: #92400e; background: #fffbeb; }
 .result-tag.skipped { border: 1px solid #e2e8f0; color: #718096; background: #f7f8fc; }
+.result-error-hint { font-size: 0.8rem; color: #f97316; margin-top: 12px; text-align: center; }
 #redo-btn { display: block; width: 100%; margin-top: 16px; padding: 12px; background: #f7f8fc; color: #5b7fff; border: 1.5px solid #5b7fff; border-radius: 10px; font-size: 1rem; cursor: pointer; }
 #redo-btn:hover { background: #eef1ff; }
 #restart-btn { display: block; width: 100%; margin-top: 10px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; }
@@ -85,11 +95,17 @@ audio { display: none; }
     </div>
     <div class="selected-hint" id="selected-hint"></div>
     <button id="start-btn" disabled>开始练习 →</button>
+    <button class="error-bank-btn" id="error-bank-btn" disabled>
+      <span>📕 练习错题集</span>
+      <span class="error-bank-badge" id="error-bank-count">0</span>
+    </button>
+    <div class="error-bank-clear" id="error-bank-clear" style="display:none">清空错题集</div>
   </div>
 
   <div id="practice-page">
     <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
     <div class="progress-text" id="prog-text"></div>
+    <div class="mode-tag" id="mode-tag"></div>
     <div class="chinese-word" id="chinese-display"></div>
     <div class="hint-label" id="hint-label"></div>
     <div class="letter-boxes" id="letter-boxes"></div>
@@ -117,6 +133,7 @@ audio { display: none; }
       <h3>⏭ 跳过</h3>
       <div id="skipped-list"></div>
     </div>
+    <div class="result-error-hint" id="result-error-hint"></div>
     <button id="redo-btn">重练错题 / 跳过题</button>
     <button id="restart-btn">重新选择练习内容</button>
   </div>
@@ -130,12 +147,14 @@ audio { display: none; }
   const GITHUB_USERNAME = 'kirasunil4807-dotcom';
   const REPO_NAME = 'enlearner';
   const BASE = 'https://raw.githubusercontent.com/'+GITHUB_USERNAME+'/'+REPO_NAME+'/main/';
+  const LS_KEY = 'vocab_error_bank';
 
   var words=[], queue=[], results=[];
   var cur=0, wrongAttempts=0;
   var locked=false, typed='';
   var revealedPos=[], shuffledIdx=[];
   var prevState=null;
+  var isErrorBankMode=false;
 
   const soundSuccess = document.getElementById('audio-success');
   const soundError   = document.getElementById('audio-error');
@@ -147,84 +166,105 @@ audio { display: none; }
   function isLetter(c){ return /^[a-zA-Z]$/.test(c); }
   function getLetterSlots(str){ var s=[]; for(var i=0;i<str.length;i++) if(isLetter(str[i])) s.push(i); return s; }
 
+  // ---- 错题集 ----
+  function loadErrorBank(){
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch(e){ return []; }
+  }
+  function saveErrorBank(bank){ localStorage.setItem(LS_KEY, JSON.stringify(bank)); }
+
+  function addToErrorBank(word){
+    var bank = loadErrorBank();
+    var exists = bank.some(function(w){ return w.en === word.en; });
+    if(!exists){ bank.push({en:word.en, zh:word.zh}); saveErrorBank(bank); }
+    updateErrorBankUI();
+  }
+
+  function removeFromErrorBank(word){
+    var bank = loadErrorBank().filter(function(w){ return w.en !== word.en; });
+    saveErrorBank(bank);
+    updateErrorBankUI();
+  }
+
+  function updateErrorBankUI(){
+    var bank = loadErrorBank();
+    var count = bank.length;
+    $('error-bank-count').textContent = count;
+    $('error-bank-btn').disabled = count === 0;
+    $('error-bank-clear').style.display = count > 0 ? 'block' : 'none';
+  }
+
+  $('error-bank-clear').onclick = function(){
+    if(confirm('确定清空全部错题？')) { saveErrorBank([]); updateErrorBankUI(); }
+  };
+
+  $('error-bank-btn').onclick = function(){
+    var bank = loadErrorBank();
+    if(!bank.length) return;
+    isErrorBankMode = true;
+    queue = shuffle(bank.slice()); results = []; cur = 0; prevState = null;
+    $('back-btn').disabled = true;
+    showPage('practice-page');
+    $('mode-tag').textContent = '📕 错题集模式';
+    loadQuestion();
+  };
+
   // ---- 动态加载词库列表 ----
   (async function loadIndex(){
     try {
       var res = await fetch(BASE+'index.json');
       var list = await res.json();
       var container = $('vocab-list');
-      container.innerHTML = '';
-
-      // 全选行
-      var allRow = document.createElement('div');
-      allRow.className = 'select-all-row';
-      var allCb = document.createElement('input');
-      allCb.type = 'checkbox'; allCb.id = 'cb-all';
-      var allLbl = document.createElement('label');
-      allLbl.htmlFor = 'cb-all'; allLbl.textContent = '全选';
+      container.innerHTML='';
+      var allRow=document.createElement('div'); allRow.className='select-all-row';
+      var allCb=document.createElement('input'); allCb.type='checkbox'; allCb.id='cb-all';
+      var allLbl=document.createElement('label'); allLbl.htmlFor='cb-all'; allLbl.textContent='全选';
       allRow.appendChild(allCb); allRow.appendChild(allLbl);
       container.appendChild(allRow);
-
       list.forEach(function(item){
-        var row = document.createElement('div');
-        row.className = 'vocab-item';
-        var cb = document.createElement('input');
-        cb.type='checkbox'; cb.value=item.value; cb.id='cb-'+item.value; cb.className='vocab-cb';
-        var lbl = document.createElement('label');
-        lbl.htmlFor='cb-'+item.value; lbl.textContent=item.label;
+        var row=document.createElement('div'); row.className='vocab-item';
+        var cb=document.createElement('input'); cb.type='checkbox'; cb.value=item.value; cb.id='cb-'+item.value; cb.className='vocab-cb';
+        var lbl=document.createElement('label'); lbl.htmlFor='cb-'+item.value; lbl.textContent=item.label;
         row.appendChild(cb); row.appendChild(lbl);
-        row.onclick = function(e){ if(e.target!==cb) cb.checked=!cb.checked; updateSelection(); };
-        cb.onchange = updateSelection;
+        row.onclick=function(e){ if(e.target!==cb) cb.checked=!cb.checked; updateSelection(); };
+        cb.onchange=updateSelection;
         container.appendChild(row);
       });
-
-      allCb.onchange = function(){
+      allCb.onchange=function(){
         document.querySelectorAll('.vocab-cb').forEach(function(c){ c.checked=allCb.checked; });
         updateSelection();
       };
     } catch(e) {
-      $('vocab-list').innerHTML = '<div class="vocab-loading">词库列表加载失败</div>';
-      console.error(e);
+      $('vocab-list').innerHTML='<div class="vocab-loading">词库列表加载失败</div>';
     }
   })();
 
-  function getChecked(){
-    return Array.from(document.querySelectorAll('.vocab-cb:checked')).map(function(c){ return c.value; });
-  }
+  function getChecked(){ return Array.from(document.querySelectorAll('.vocab-cb:checked')).map(function(c){ return c.value; }); }
 
   function updateSelection(){
-    var checked = getChecked();
-    var all = document.querySelectorAll('.vocab-cb');
-    var allCb = $('cb-all');
-    if(allCb) allCb.checked = checked.length === all.length && all.length > 0;
-    $('start-btn').disabled = checked.length === 0;
-    $('selected-hint').textContent = checked.length > 0 ? '已选 '+checked.length+' 个词库' : '';
+    var checked=getChecked(), all=document.querySelectorAll('.vocab-cb'), allCb=$('cb-all');
+    if(allCb) allCb.checked=checked.length===all.length&&all.length>0;
+    $('start-btn').disabled=checked.length===0;
+    $('selected-hint').textContent=checked.length>0?'已选 '+checked.length+' 个词库':'';
   }
 
-  $('start-btn').onclick = async function(){
-    var selected = getChecked();
-    if(!selected.length) return;
-    $('start-btn').textContent = '正在加载…';
-    $('start-btn').disabled = true;
+  $('start-btn').onclick=async function(){
+    var selected=getChecked(); if(!selected.length) return;
+    $('start-btn').textContent='正在加载…'; $('start-btn').disabled=true;
     try {
-      var all = await Promise.all(selected.map(function(file){
-        return fetch(BASE+'vocabulary/'+file+'.json').then(function(r){
-          if(!r.ok) throw new Error(file+' 加载失败');
-          return r.json();
-        });
+      var all=await Promise.all(selected.map(function(file){
+        return fetch(BASE+'vocabulary/'+file+'.json').then(function(r){ if(!r.ok) throw new Error(file+' 加载失败'); return r.json(); });
       }));
-      words = [];
-      all.forEach(function(data){
-        data.forEach(function(item){ words.push({en:item.word.trim(), zh:item.translation.trim()}); });
-      });
+      words=[];
+      all.forEach(function(data){ data.forEach(function(item){ words.push({en:item.word.trim(), zh:item.translation.trim()}); }); });
       if(!words.length){ alert('所选词库内容为空！'); return; }
+      isErrorBankMode=false;
       queue=shuffle(words.slice()); results=[]; cur=0; prevState=null;
       $('back-btn').disabled=true;
       showPage('practice-page');
+      $('mode-tag').textContent='';
       loadQuestion();
     } catch(e) {
       alert('❌ 载入失败：'+e.message);
-      console.error(e);
     } finally {
       $('start-btn').textContent='开始练习 →';
       updateSelection();
@@ -275,30 +315,44 @@ audio { display: none; }
   function doSubmit(){
     if(locked||!typed) return;
     var w=queue[cur], correctRaw=w.en.toLowerCase().replace(/[^a-z]/g,'');
-    var letterSlots=getLetterSlots(w.en), nonHint=letterSlots.filter(function(p){ return revealedPos.indexOf(p)<0; });
+    var letterSlots=getLetterSlots(w.en);
+    var nonHint=letterSlots.filter(function(p){ return revealedPos.indexOf(p)<0; });
     var ansArr=[], ti=0;
     for(var i=0;i<w.en.length;i++){
       if(!isLetter(w.en[i])) continue;
       if(revealedPos.indexOf(i)>=0) ansArr.push(w.en[i].toLowerCase());
       else if(ti<typed.length){ ansArr.push(typed[ti].toLowerCase()); ti++; }
     }
+
     if(ansArr.join('')===correctRaw){
       soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
       locked=true;
       $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ if(!b.classList.contains('space')&&!b.classList.contains('symbol')) b.className='letter-box correct-char'; });
-      results.push({en:w.en, zh:w.zh, status:wrongAttempts===0?'correct':'hinted'});
+      var status = wrongAttempts===0 ? 'correct' : 'hinted';
+      results.push({en:w.en, zh:w.zh, status:status});
+      if(wrongAttempts===0){
+        // 一次答对：错题集模式才移出，普通模式不操作
+        if(isErrorBankMode) removeFromErrorBank(w);
+      } else {
+        // 有提示才答对：无论什么模式都加入错题集
+        addToErrorBank(w);
+      }
       prevState=null; $('back-btn').disabled=true; $('pencil-input').disabled=true;
       setTimeout(function(){ cur++; loadQuestion(); }, 900);
     } else {
       soundError.currentTime=0; soundError.play().catch(function(){});
       wrongAttempts++;
       if(wrongAttempts>2){
-        locked=true; results.push({en:w.en, zh:w.zh, status:'hinted'}); prevState=null;
-        $('back-btn').disabled=true; $('submit-btn').disabled=true;
+        locked=true;
+        results.push({en:w.en, zh:w.zh, status:'hinted'});
+        // 加入错题集（普通模式或错题集模式答错都保留）
+        addToErrorBank(w);
+        prevState=null; $('back-btn').disabled=true; $('submit-btn').disabled=true;
         $('hint-label').textContent='答案：'+w.en; $('hint-label').classList.add('fail');
         setTimeout(function(){ cur++; loadQuestion(); }, 2000); return;
       }
-      var el=$('letter-boxes'); el.classList.add('shake'); setTimeout(function(){ el.classList.remove('shake'); }, 350);
+      var el=$('letter-boxes'); el.classList.add('shake');
+      setTimeout(function(){ el.classList.remove('shake'); }, 350);
       revealedPos.push(shuffledIdx[wrongAttempts-1]);
       $('hint-label').textContent=hintLabelText();
       typed=''; $('pencil-input').value=''; renderBoxes();
@@ -340,11 +394,24 @@ audio { display: none; }
     $('missed-section').style.display=missed.length?'':'none';
     $('skipped-section').style.display=skipped.length?'':'none';
     fill(missed,'missed-list','missed'); fill(skipped,'skipped-list','skipped');
+    // 提示错题集变化
+    var bank=loadErrorBank();
+    if(isErrorBankMode){
+      var removed=results.filter(function(r){ return r.status==='correct'; }).length;
+      $('result-error-hint').textContent = removed>0 ? '✅ '+removed+' 个词已从错题集移除，剩余 '+bank.length+' 个' : '错题集剩余 '+bank.length+' 个';
+    } else {
+      var added=missed.length;
+      $('result-error-hint').textContent = added>0 ? '📕 '+added+' 个词已加入错题集，当前共 '+bank.length+' 个' : '';
+    }
     var redo=missed.concat(skipped);
     $('redo-btn').style.display=redo.length?'block':'none';
-    $('redo-btn').onclick=function(){ queue=redo.map(function(w){ return {en:w.en,zh:w.zh}; }); results=[]; cur=0; prevState=null; $('back-btn').disabled=true; showPage('practice-page'); loadQuestion(); };
+    $('redo-btn').onclick=function(){ queue=redo.map(function(w){ return {en:w.en,zh:w.zh}; }); results=[]; cur=0; prevState=null; isErrorBankMode=false; $('back-btn').disabled=true; showPage('practice-page'); $('mode-tag').textContent=''; loadQuestion(); };
   }
-  $('restart-btn').onclick=function(){ showPage('input-page'); };
+
+  $('restart-btn').onclick=function(){ updateErrorBankUI(); showPage('input-page'); };
+
+  // 初始化
+  updateErrorBankUI();
 })();
 </script>
 </body>
