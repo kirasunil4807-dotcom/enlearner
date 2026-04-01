@@ -11,10 +11,18 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100
 h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px; }
 
 /* Input page */
-#input-page select { width: 100%; padding: 12px; border: 1.5px solid #d0d7f0; border-radius: 10px; font-size: 1rem; color: #3b4a6b; outline: none; background-color: #f7f8fc; cursor: pointer; }
-#input-page select:focus { border-color: #5b7fff; background-color: #fff; }
+.vocab-checklist { border: 1.5px solid #d0d7f0; border-radius: 10px; background: #f7f8fc; max-height: 220px; overflow-y: auto; margin-bottom: 10px; }
+.select-all-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1.5px solid #d0d7f0; background: #eef1ff; border-radius: 10px 10px 0 0; }
+.select-all-row label { font-size: 0.85rem; color: #5b7fff; cursor: pointer; font-weight: 600; }
+.vocab-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #eef0f8; cursor: pointer; transition: background .15s; }
+.vocab-item:last-child { border-bottom: none; }
+.vocab-item:hover { background: #eef1ff; }
+.vocab-item input[type=checkbox], .select-all-row input[type=checkbox] { width: 16px; height: 16px; accent-color: #5b7fff; cursor: pointer; flex-shrink: 0; }
+.vocab-item label { cursor: pointer; font-size: 0.95rem; color: #3b4a6b; flex: 1; }
+.vocab-loading { padding: 16px; text-align: center; color: #aaa; font-size: 0.9rem; }
+.selected-hint { font-size: 0.8rem; color: #999; margin-bottom: 16px; min-height: 18px; }
 .textarea-hint { font-size: 0.85rem; color: #aaa; margin-top: 10px; text-align: center; }
-#start-btn { display: block; width: 100%; margin-top: 20px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1.05rem; cursor: pointer; }
+#start-btn { display: block; width: 100%; margin-top: 4px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1.05rem; cursor: pointer; }
 #start-btn:hover:not(:disabled) { background: #3a5fef; }
 #start-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
 
@@ -25,36 +33,30 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .progress-text { text-align: right; font-size: 0.8rem; color: #999; margin-bottom: 20px; }
 .chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
-
-/* 字母区域 */
 .letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
 .letter-box { width: 28px; height: 36px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.2rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
-
-.letter-box.space { border-bottom: none; width: 20px; } 
-.letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; } 
-.letter-box.hint-char  { color: #f59e0b; border-bottom-color: #f59e0b; }
+.letter-box.space { border-bottom: none; width: 20px; }
+.letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; }
+.letter-box.hint-char { color: #f59e0b; border-bottom-color: #f59e0b; }
 .letter-box.typed-char { color: #3b4a6b; border-bottom-color: #5b7fff; }
-.letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; animation: correct-pop 0.3s ease; } /* 正确时增加一个缩放动画 */
+.letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; animation: correct-pop 0.3s ease; }
 .letter-box.cursor { border-bottom-color: #5b7fff; }
 .letter-box.cursor::after { content:''; display:block; width:2px; height:16px; background:#5b7fff; position:absolute; bottom:4px; animation: blink .8s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
-@keyframes correct-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes correct-pop { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
 .letter-boxes.shake { animation: shake .3s; }
-
-/* Pencil Input */
 .pencil-input-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
 .pencil-input { width: 100%; max-width: 400px; border: 1px solid #d0d7f0; background: #f7f8fc; border-radius: 8px; padding: 10px; font-size: 1.1rem; text-align: center; outline: none; color: #3b4a6b; caret-color: #5b7fff; letter-spacing: 1px; }
 .pencil-input:focus { border-color: #5b7fff; background: #fff; }
-
 .btn-row { display: flex; gap: 10px; }
-.btn-back   { flex: 1; padding: 12px; background: #f7f8fc; color: #718096; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
+.btn-back { flex: 1; padding: 12px; background: #f7f8fc; color: #718096; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
 .btn-back:hover:not(:disabled) { background: #e2e8f0; }
 .btn-back:disabled { opacity: .35; cursor: default; }
 .btn-submit { flex: 2; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; }
 .btn-submit:hover { background: #3a5fef; }
 .btn-submit:disabled { background: #a0aec0; cursor: default; }
-.btn-skip   { flex: 1; padding: 12px; background: #f7f8fc; color: #718096; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
+.btn-skip { flex: 1; padding: 12px; background: #f7f8fc; color: #718096; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
 .btn-skip:hover { background: #e2e8f0; }
 
 /* Result page */
@@ -65,14 +67,12 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .result-section { margin-bottom: 18px; }
 .result-section h3 { font-size: 0.9rem; color: #718096; margin-bottom: 8px; }
 .result-tag { display: inline-block; border-radius: 6px; padding: 6px 12px; margin: 4px; font-size: 0.88rem; }
-.result-tag.missed  { border: 1px solid #f59e0b; color: #92400e; background: #fffbeb; }
+.result-tag.missed { border: 1px solid #f59e0b; color: #92400e; background: #fffbeb; }
 .result-tag.skipped { border: 1px solid #e2e8f0; color: #718096; background: #f7f8fc; }
-#redo-btn     { display: block; width: 100%; margin-top: 16px; padding: 12px; background: #f7f8fc; color: #5b7fff; border: 1.5px solid #5b7fff; border-radius: 10px; font-size: 1rem; cursor: pointer; }
+#redo-btn { display: block; width: 100%; margin-top: 16px; padding: 12px; background: #f7f8fc; color: #5b7fff; border: 1.5px solid #5b7fff; border-radius: 10px; font-size: 1rem; cursor: pointer; }
 #redo-btn:hover { background: #eef1ff; }
 #restart-btn { display: block; width: 100%; margin-top: 10px; padding: 12px; background: #5b7fff; color: #fff; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; }
 #restart-btn:hover { background: #3a5fef; }
-
-/* 音频控制（隐藏） */
 audio { display: none; }
 </style>
 </head>
@@ -80,32 +80,29 @@ audio { display: none; }
 <div class="container">
   <div id="input-page">
     <h1>📖 英语默写闯关</h1>
-    <select id="vocab-select">
-      <option value="" disabled selected>-- 请选择练习内容 --</option>
-      <option value="g3_t2_u4">三年级下册 - 第四单元 (Animals)</option>
-      <option value="g3_t2_u5">三年级下册 - 第五单元 (Like)</option>
-    </select>
+    <div class="vocab-checklist" id="vocab-list">
+      <div class="vocab-loading">正在加载词库列表…</div>
+    </div>
+    <div class="selected-hint" id="selected-hint"></div>
     <button id="start-btn" disabled>开始练习 →</button>
   </div>
-  
+
   <div id="practice-page">
     <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
     <div class="progress-text" id="prog-text"></div>
     <div class="chinese-word" id="chinese-display"></div>
     <div class="hint-label" id="hint-label"></div>
     <div class="letter-boxes" id="letter-boxes"></div>
-    
     <div class="pencil-input-wrap">
       <input class="pencil-input" id="pencil-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="在此处手写或输入字母">
     </div>
-    
     <div class="btn-row">
       <button class="btn-back" id="back-btn" disabled>← 返回</button>
       <button class="btn-submit" id="submit-btn">提交</button>
       <button class="btn-skip" id="skip-btn">跳过</button>
     </div>
   </div>
-  
+
   <div id="result-page">
     <h1>🎉 本轮结果</h1>
     <div class="score-circle">
@@ -126,344 +123,227 @@ audio { display: none; }
 </div>
 
 <audio id="audio-success" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3" preload="auto"></audio>
-<audio id="audio-error" src="https://assets.mixkit.co/active_storage/sfx/2947/2947-preview.mp3" preload="auto"></audio>
+<audio id="audio-error" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" preload="auto"></audio>
 <audio id="audio-cheer" src="https://assets.mixkit.co/active_storage/sfx/1993/1993-preview.mp3" preload="auto"></audio>
 <script>
 (function(){
-  const GITHUB_USERNAME = "kirasunil4807-dotcom"; 
-  const REPO_NAME = "enlearner"; 
+  const GITHUB_USERNAME = 'kirasunil4807-dotcom';
+  const REPO_NAME = 'enlearner';
+  const BASE = 'https://raw.githubusercontent.com/'+GITHUB_USERNAME+'/'+REPO_NAME+'/main/';
 
   var words=[], queue=[], results=[];
   var cur=0, wrongAttempts=0;
   var locked=false, typed='';
   var revealedPos=[], shuffledIdx=[];
-  var prevState=null; 
+  var prevState=null;
 
-  // 获取音效 DOM 元素
   const soundSuccess = document.getElementById('audio-success');
-  const soundError = document.getElementById('audio-error');
-  const soundCheer = document.getElementById('audio-cheer');
+  const soundError   = document.getElementById('audio-error');
+  const soundCheer   = document.getElementById('audio-cheer');
 
   function $(id){ return document.getElementById(id); }
-  
-  function shuffle(arr){
-    for(var i=arr.length-1;i>0;i--){
-      var j=Math.floor(Math.random()*(i+1));
-      var t=arr[i]; arr[i]=arr[j]; arr[j]=t;
+  function shuffle(arr){ for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),t=arr[i];arr[i]=arr[j];arr[j]=t; } return arr; }
+  function showPage(id){ ['input-page','practice-page','result-page'].forEach(function(p){ $(p).style.display=p===id?'block':'none'; }); }
+  function isLetter(c){ return /^[a-zA-Z]$/.test(c); }
+  function getLetterSlots(str){ var s=[]; for(var i=0;i<str.length;i++) if(isLetter(str[i])) s.push(i); return s; }
+
+  // ---- 动态加载词库列表 ----
+  (async function loadIndex(){
+    try {
+      var res = await fetch(BASE+'index.json');
+      var list = await res.json();
+      var container = $('vocab-list');
+      container.innerHTML = '';
+
+      // 全选行
+      var allRow = document.createElement('div');
+      allRow.className = 'select-all-row';
+      var allCb = document.createElement('input');
+      allCb.type = 'checkbox'; allCb.id = 'cb-all';
+      var allLbl = document.createElement('label');
+      allLbl.htmlFor = 'cb-all'; allLbl.textContent = '全选';
+      allRow.appendChild(allCb); allRow.appendChild(allLbl);
+      container.appendChild(allRow);
+
+      list.forEach(function(item){
+        var row = document.createElement('div');
+        row.className = 'vocab-item';
+        var cb = document.createElement('input');
+        cb.type='checkbox'; cb.value=item.value; cb.id='cb-'+item.value; cb.className='vocab-cb';
+        var lbl = document.createElement('label');
+        lbl.htmlFor='cb-'+item.value; lbl.textContent=item.label;
+        row.appendChild(cb); row.appendChild(lbl);
+        row.onclick = function(e){ if(e.target!==cb) cb.checked=!cb.checked; updateSelection(); };
+        cb.onchange = updateSelection;
+        container.appendChild(row);
+      });
+
+      allCb.onchange = function(){
+        document.querySelectorAll('.vocab-cb').forEach(function(c){ c.checked=allCb.checked; });
+        updateSelection();
+      };
+    } catch(e) {
+      $('vocab-list').innerHTML = '<div class="vocab-loading">词库列表加载失败</div>';
+      console.error(e);
     }
-    return arr;
-  }
-  
-  function showPage(id){
-    ['input-page','practice-page','result-page'].forEach(function(p){
-      $(p).style.display = p===id ? 'block' : 'none';
-    });
-  }
-  
-  function updateProgress(){
-    var pct = queue.length ? (cur/queue.length*100).toFixed(0) : 0;
-    $('prog-bar').style.width = pct+'%';
-    $('prog-text').textContent = cur+' / '+queue.length;
+  })();
+
+  function getChecked(){
+    return Array.from(document.querySelectorAll('.vocab-cb:checked')).map(function(c){ return c.value; });
   }
 
-  function isLetter(c) {
-    return /^[a-zA-Z]$/.test(c);
+  function updateSelection(){
+    var checked = getChecked();
+    var all = document.querySelectorAll('.vocab-cb');
+    var allCb = $('cb-all');
+    if(allCb) allCb.checked = checked.length === all.length && all.length > 0;
+    $('start-btn').disabled = checked.length === 0;
+    $('selected-hint').textContent = checked.length > 0 ? '已选 '+checked.length+' 个词库' : '';
   }
 
-  function getLetterSlots(str) {
-    let slots = [];
-    for(let i=0; i<str.length; i++) {
-      if(isLetter(str[i])) slots.push(i);
+  $('start-btn').onclick = async function(){
+    var selected = getChecked();
+    if(!selected.length) return;
+    $('start-btn').textContent = '正在加载…';
+    $('start-btn').disabled = true;
+    try {
+      var all = await Promise.all(selected.map(function(file){
+        return fetch(BASE+'vocabulary/'+file+'.json').then(function(r){
+          if(!r.ok) throw new Error(file+' 加载失败');
+          return r.json();
+        });
+      }));
+      words = [];
+      all.forEach(function(data){
+        data.forEach(function(item){ words.push({en:item.word.trim(), zh:item.translation.trim()}); });
+      });
+      if(!words.length){ alert('所选词库内容为空！'); return; }
+      queue=shuffle(words.slice()); results=[]; cur=0; prevState=null;
+      $('back-btn').disabled=true;
+      showPage('practice-page');
+      loadQuestion();
+    } catch(e) {
+      alert('❌ 载入失败：'+e.message);
+      console.error(e);
+    } finally {
+      $('start-btn').textContent='开始练习 →';
+      updateSelection();
     }
-    return slots;
-  }
-  
-  function initHints(){
-    var str = queue[cur].en;
-    var letterSlots = getLetterSlots(str);
-    shuffledIdx = shuffle(letterSlots.slice());
-    revealedPos = [];
-  }
-  
-  function hintLabelText(){
-    if(!revealedPos.length) return '';
-    return queue[cur].en.split('').map(function(c,i){
-      if (!isLetter(c)) return c; 
-      return revealedPos.indexOf(i) >= 0 ? c : '_';
-    }).join(' ');
-  }
-  
+  };
+
+  // ---- 练习逻辑 ----
+  function updateProgress(){ var pct=queue.length?(cur/queue.length*100).toFixed(0):0; $('prog-bar').style.width=pct+'%'; $('prog-text').textContent=cur+' / '+queue.length; }
+  function initHints(){ var slots=getLetterSlots(queue[cur].en); shuffledIdx=shuffle(slots.slice()); revealedPos=[]; }
+  function hintLabelText(){ if(!revealedPos.length) return ''; return queue[cur].en.split('').map(function(c,i){ if(!isLetter(c)) return c; return revealedPos.indexOf(i)>=0?c:'_'; }).join(' '); }
+
   function renderBoxes(){
     var w=queue[cur], el=$('letter-boxes');
-    var letterSlots = getLetterSlots(w.en);
+    var letterSlots=getLetterSlots(w.en);
+    var nonHint=letterSlots.filter(function(p){ return revealedPos.indexOf(p)<0; });
+    var cursorPos=nonHint[typed.length];
     el.innerHTML='';
-    
-    let activeUserCharIdx = typed.length;
-    let nonHintLetterSlots = letterSlots.filter(p => revealedPos.indexOf(p) < 0);
-    let cursorGlobalPos = nonHintLetterSlots[activeUserCharIdx];
-
-    for(var i=0; i<w.en.length; i++){
-      var c = w.en[i];
-      var box=document.createElement('div');
-      
-      if (c === ' ') {
-        box.className = 'letter-box space'; 
-        box.textContent = '';
-      } else if (!isLetter(c)) {
-        box.className = 'letter-box symbol';
-        box.textContent = c;
-      } else {
-        box.className = 'letter-box';
-        if(revealedPos.indexOf(i) >= 0){
-          box.textContent = c;
-          box.className += ' hint-char';
-        } else {
-          let uIdx = nonHintLetterSlots.indexOf(i);
-          if (uIdx >= 0 && uIdx < typed.length) {
-            box.textContent = typed[uIdx];
-            box.className += ' typed-char';
-          } else {
-            if(i === cursorGlobalPos && !locked) box.className += ' cursor';
-          }
-        }
+    for(var i=0;i<w.en.length;i++){
+      var c=w.en[i], box=document.createElement('div');
+      if(c===' '){ box.className='letter-box space'; }
+      else if(!isLetter(c)){ box.className='letter-box symbol'; box.textContent=c; }
+      else {
+        box.className='letter-box';
+        if(revealedPos.indexOf(i)>=0){ box.textContent=c; box.className+=' hint-char'; }
+        else { var ui=nonHint.indexOf(i); if(ui>=0&&ui<typed.length){ box.textContent=typed[ui]; box.className+=' typed-char'; } else if(i===cursorPos&&!locked){ box.className+=' cursor'; } }
       }
       el.appendChild(box);
     }
   }
 
-  $('vocab-select').addEventListener('change', function() {
-      if (this.value) {
-          $('start-btn').disabled = false;
-      }
-  });
-
-  $('start-btn').onclick = async function(){
-    const fileName = $('vocab-select').value;
-    if (!fileName) return;
-
-    $('start-btn').textContent = "正在加载数据...";
-    $('start-btn').disabled = true;
-
-    const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/vocabulary/${fileName}.json`;
-
-    try {
-        const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error(`请求失败 (HTTP ${response.status})`);
-        
-        const jsonData = await response.json();
-        
-        words = jsonData.map(item => {
-            return { en: item.word.trim(), zh: item.translation.trim() };
-        });
-
-        if(!words.length){ alert('文件内容为空！'); return; }
-        
-        queue=shuffle(words.slice()); results=[]; cur=0; prevState=null;
-        $('back-btn').disabled=true;
-        showPage('practice-page');
-        loadQuestion();
-    } catch (error) {
-        alert(`❌ 载入失败！\n请确认 GitHub 仓库的 main 分支中是否存在 vocabulary/${fileName}.json 文件。`);
-        console.error(error);
-    } finally {
-        $('start-btn').textContent = "开始练习 →";
-        $('start-btn').disabled = false;
-    }
-  };
-
   function loadQuestion(){
-    if(cur>=queue.length){ 
-        // 附加赠送：全通关时放一段简短的欢呼声
-        soundCheer.currentTime = 0;
-        soundCheer.play().catch(e => console.log("Чеер sound auto-play prevented."));
-        showResults(); 
-        return; 
-    }
-    wrongAttempts=0; 
-    locked=false; typed='';
-    initHints();
-    updateProgress();
+    if(cur>=queue.length){ soundCheer.currentTime=0; soundCheer.play().catch(function(){}); showResults(); return; }
+    wrongAttempts=0; locked=false; typed=''; initHints(); updateProgress();
     $('chinese-display').textContent=queue[cur].zh;
-    $('hint-label').textContent='';
-    $('hint-label').classList.remove('fail');
+    $('hint-label').textContent=''; $('hint-label').classList.remove('fail');
     $('letter-boxes').classList.remove('shake');
-    $('submit-btn').disabled=false;
-    $('pencil-input').value='';
-    $('pencil-input').disabled=false;
+    $('submit-btn').disabled=false; $('pencil-input').value=''; $('pencil-input').disabled=false;
     renderBoxes();
   }
-  
+
   function restoreQuestion(){
-    updateProgress();
-    $('chinese-display').textContent=queue[cur].zh;
-    $('hint-label').textContent=hintLabelText();
-    $('hint-label').classList.remove('fail');
-    $('letter-boxes').classList.remove('shake');
-    $('submit-btn').disabled=false;
-    $('pencil-input').value='';
-    $('pencil-input').disabled=false;
-    locked=false;
-    renderBoxes();
+    updateProgress(); $('chinese-display').textContent=queue[cur].zh;
+    $('hint-label').textContent=hintLabelText(); $('hint-label').classList.remove('fail');
+    $('letter-boxes').classList.remove('shake'); $('submit-btn').disabled=false;
+    $('pencil-input').value=''; $('pencil-input').disabled=false; locked=false; renderBoxes();
   }
-  
-  // 核心匹配与音效逻辑
+
   function doSubmit(){
     if(locked||!typed) return;
-    
-    var correctRaw = queue[cur].en.toLowerCase().replace(/[^a-z]/g, '');
-    var w = queue[cur];
-    var letterSlots = getLetterSlots(w.en); 
-    
-    var nonHintLetterSlots = letterSlots.filter(p => revealedPos.indexOf(p) < 0);
-    
-    var answerArray = [];
-    var typedCharIdx = 0;
-    
-    for(let i=0; i<w.en.length; i++) {
-      if(isLetter(w.en[i])) {
-        if(revealedPos.indexOf(i) >= 0) {
-          answerArray.push(w.en[i].toLowerCase());
-        } else {
-          if(typedCharIdx < typed.length) {
-            answerArray.push(typed[typedCharIdx].toLowerCase());
-            typedCharIdx++;
-          }
-        }
-      }
+    var w=queue[cur], correctRaw=w.en.toLowerCase().replace(/[^a-z]/g,'');
+    var letterSlots=getLetterSlots(w.en), nonHint=letterSlots.filter(function(p){ return revealedPos.indexOf(p)<0; });
+    var ansArr=[], ti=0;
+    for(var i=0;i<w.en.length;i++){
+      if(!isLetter(w.en[i])) continue;
+      if(revealedPos.indexOf(i)>=0) ansArr.push(w.en[i].toLowerCase());
+      else if(ti<typed.length){ ansArr.push(typed[ti].toLowerCase()); ti++; }
     }
-    
-    var answerRaw = answerArray.join('');
-    
-    if(answerRaw === correctRaw){
-      // ⬇️ 🎯 核心音效部分：答对 ⬇️
-      soundSuccess.currentTime = 0; // 重置音频，防止连答时无声
-      soundSuccess.play().catch(e => console.log("Успех sound auto-play prevented."));
-      // ⬆️ 🎯 核心音效部分 ⬆️
-
+    if(ansArr.join('')===correctRaw){
+      soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
       locked=true;
-      $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ 
-        if (!b.classList.contains('space') && !b.classList.contains('symbol')) {
-          b.className='letter-box correct-char'; 
-        }
-      });
-      results.push({en:queue[cur].en, zh:queue[cur].zh, status: wrongAttempts===0?'correct':'hinted'});
-      prevState=null;
-      $('back-btn').disabled=true;
-      $('pencil-input').disabled=true;
+      $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ if(!b.classList.contains('space')&&!b.classList.contains('symbol')) b.className='letter-box correct-char'; });
+      results.push({en:w.en, zh:w.zh, status:wrongAttempts===0?'correct':'hinted'});
+      prevState=null; $('back-btn').disabled=true; $('pencil-input').disabled=true;
       setTimeout(function(){ cur++; loadQuestion(); }, 900);
     } else {
-      // ⬇️ 🎯 核心音效部分：答错 ⬇️
-      soundError.currentTime = 0; // 重置音频
-      soundError.play().catch(e => console.log("Ошибка sound auto-play prevented."));
-      // ⬆️ 🎯 核心音效部分 ⬆️
-
+      soundError.currentTime=0; soundError.play().catch(function(){});
       wrongAttempts++;
       if(wrongAttempts>2){
-        locked=true;
-        results.push({en:queue[cur].en, zh:queue[cur].zh, status:'hinted'});
-        prevState=null;
-        $('back-btn').disabled=true;
-        $('submit-btn').disabled=true;
-        $('hint-label').textContent='答案：'+queue[cur].en;
-        $('hint-label').classList.add('fail');
-        setTimeout(function(){ cur++; loadQuestion(); }, 2000); 
-        return;
+        locked=true; results.push({en:w.en, zh:w.zh, status:'hinted'}); prevState=null;
+        $('back-btn').disabled=true; $('submit-btn').disabled=true;
+        $('hint-label').textContent='答案：'+w.en; $('hint-label').classList.add('fail');
+        setTimeout(function(){ cur++; loadQuestion(); }, 2000); return;
       }
-      var el=$('letter-boxes');
-      el.classList.add('shake');
-      setTimeout(function(){ el.classList.remove('shake'); }, 350);
-      
+      var el=$('letter-boxes'); el.classList.add('shake'); setTimeout(function(){ el.classList.remove('shake'); }, 350);
       revealedPos.push(shuffledIdx[wrongAttempts-1]);
       $('hint-label').textContent=hintLabelText();
-      typed='';
-      $('pencil-input').value='';
-      renderBoxes();
+      typed=''; $('pencil-input').value=''; renderBoxes();
     }
   }
-  
+
   function doSkip(){
-    prevState={
-      cur: cur,
-      typed: typed,
-      revealedPos: revealedPos.slice(),
-      shuffledIdx: shuffledIdx.slice(),
-      wrongAttempts: wrongAttempts,
-      resultsLen: results.length
-    };
+    prevState={cur:cur, typed:typed, revealedPos:revealedPos.slice(), shuffledIdx:shuffledIdx.slice(), wrongAttempts:wrongAttempts, resultsLen:results.length};
     results.push({en:queue[cur].en, zh:queue[cur].zh, status:'skipped'});
-    $('back-btn').disabled=false;
-    cur++;
-    loadQuestion();
+    $('back-btn').disabled=false; cur++; loadQuestion();
   }
-  
+
   function doBack(){
     if(!prevState) return;
-    cur           = prevState.cur;
-    typed         = prevState.typed;
-    revealedPos   = prevState.revealedPos;
-    shuffledIdx   = prevState.shuffledIdx;
-    wrongAttempts = prevState.wrongAttempts;
-    results.splice(prevState.resultsLen); 
-    prevState=null;
-    $('back-btn').disabled=true;
-    restoreQuestion();
+    cur=prevState.cur; typed=prevState.typed; revealedPos=prevState.revealedPos;
+    shuffledIdx=prevState.shuffledIdx; wrongAttempts=prevState.wrongAttempts;
+    results.splice(prevState.resultsLen); prevState=null; $('back-btn').disabled=true; restoreQuestion();
   }
-  
+
   $('pencil-input').addEventListener('input', function(e){
     if(locked) return;
-    var str = queue[cur].en;
-    var letterSlots = getLetterSlots(str);
-    var maxLen = letterSlots.length - revealedPos.length;
-    
-    var val = e.target.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
-    if (val.length > maxLen) { val = val.slice(0, maxLen); }
-    typed = val;
-    e.target.value = val;
-    renderBoxes();
+    var maxLen=getLetterSlots(queue[cur].en).length-revealedPos.length;
+    var val=e.target.value.replace(/[^a-zA-Z]/g,'').toLowerCase().slice(0,maxLen);
+    typed=val; e.target.value=val; renderBoxes();
   });
-
-  $('pencil-input').addEventListener('keydown', function(e){
-    if(e.key === 'Enter'){ doSubmit(); e.preventDefault(); }
-  });
-
+  $('pencil-input').addEventListener('keydown', function(e){ if(e.key==='Enter'){ doSubmit(); e.preventDefault(); } });
   $('letter-boxes').onclick=function(){ $('pencil-input').focus(); };
-  $('submit-btn').onclick=function(){ doSubmit(); };
+  $('submit-btn').onclick=doSubmit;
   $('skip-btn').onclick=doSkip;
   $('back-btn').onclick=doBack;
-  
+
   function showResults(){
     showPage('result-page');
     var ok=results.filter(function(r){ return r.status==='correct'; }).length;
     $('score-num').textContent=ok+'/'+results.length;
-    var missed =results.filter(function(r){ return r.status==='hinted'; });
+    var missed=results.filter(function(r){ return r.status==='hinted'; });
     var skipped=results.filter(function(r){ return r.status==='skipped'; });
-    
-    function fill(arr,elId,cls){
-      var el=$(elId); el.innerHTML='';
-      arr.forEach(function(w){
-        var t=document.createElement('span');
-        t.className='result-tag '+cls;
-        t.textContent=w.en+' | '+w.zh;
-        el.appendChild(t);
-      });
-    }
-    
-    $('missed-section').style.display =missed.length  ? '' : 'none';
-    $('skipped-section').style.display=skipped.length ? '' : 'none';
-    fill(missed, 'missed-list', 'missed');
-    fill(skipped,'skipped-list', 'skipped');
-    
+    function fill(arr,elId,cls){ var el=$(elId); el.innerHTML=''; arr.forEach(function(w){ var t=document.createElement('span'); t.className='result-tag '+cls; t.textContent=w.en+' | '+w.zh; el.appendChild(t); }); }
+    $('missed-section').style.display=missed.length?'':'none';
+    $('skipped-section').style.display=skipped.length?'':'none';
+    fill(missed,'missed-list','missed'); fill(skipped,'skipped-list','skipped');
     var redo=missed.concat(skipped);
     $('redo-btn').style.display=redo.length?'block':'none';
-    $('redo-btn').onclick=function(){
-      queue=redo.map(function(w){ return {en:w.en,zh:w.zh}; });
-      results=[]; cur=0; prevState=null;
-      $('back-btn').disabled=true;
-      showPage('practice-page');
-      loadQuestion();
-    };
+    $('redo-btn').onclick=function(){ queue=redo.map(function(w){ return {en:w.en,zh:w.zh}; }); results=[]; cur=0; prevState=null; $('back-btn').disabled=true; showPage('practice-page'); loadQuestion(); };
   }
-  
   $('restart-btn').onclick=function(){ showPage('input-page'); };
 })();
 </script>
