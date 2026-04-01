@@ -362,6 +362,7 @@ audio { display: none; }
   function doSkip(){
     prevState={cur:cur, typed:typed, revealedPos:revealedPos.slice(), shuffledIdx:shuffledIdx.slice(), wrongAttempts:wrongAttempts, resultsLen:results.length};
     results.push({en:queue[cur].en, zh:queue[cur].zh, status:'skipped'});
+    addToErrorBank(queue[cur]);  // 加这一行
     $('back-btn').disabled=false; cur++; loadQuestion();
   }
 
