@@ -26,18 +26,12 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
 
-/* 字母区域：支持换行 */
+/* 字母区域 */
 .letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
 .letter-box { width: 28px; height: 36px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.2rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
 
-/* ⬇️ 这里是核心修改部分 ⬇️ */
-.letter-box.space { 
-    border-bottom: none; /* 彻底移除空格底部的横线 */
-    width: 20px; /* 空格占位宽度，控制单词之间的间距 */
-} 
-/* ⬆️ 这里是核心修改部分 ⬆️ */
-
-.letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; } /* 标点符号也不占用下划线 */
+.letter-box.space { border-bottom: none; width: 20px; } 
+.letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; } 
 .letter-box.hint-char  { color: #f59e0b; border-bottom-color: #f59e0b; }
 .letter-box.typed-char { color: #3b4a6b; border-bottom-color: #5b7fff; }
 .letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; }
@@ -187,18 +181,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     }).join(' ');
   }
   
-  function reconstructAnswer(){
-    var w=queue[cur], arr=w.en.split('');
-    var letterSlots = getLetterSlots(w.en);
-    letterSlots.forEach(function(pos, si){
-      if(revealedPos.indexOf(pos) < 0) {
-        let userCharIdx = letterSlots.slice(0, pos).filter(p => revealedPos.indexOf(p) < 0).length;
-        arr[pos] = typed[userCharIdx] || '';
-      }
-    });
-    return arr.join('');
-  }
-  
   function renderBoxes(){
     var w=queue[cur], el=$('letter-boxes');
     var letterSlots = getLetterSlots(w.en);
@@ -306,12 +288,43 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     renderBoxes();
   }
   
+  /* ⬇️ 核心修复逻辑：抛开大小写、空格和标点，只比对纯字母 ⬇️ */
   function doSubmit(){
     if(locked||!typed) return;
-    var correct=queue[cur].en.toLowerCase();
-    var answer=reconstructAnswer().toLowerCase();
     
-    if(answer===correct){
+    // 1. 获取去掉空格和所有标点符号后的纯小写答案
+    var correctRaw = queue[cur].en.toLowerCase().replace(/[^a-z]/g, '');
+    
+    // 2. 获取用户已经键入的字母，并拼合被随机提示放出的字母
+    var w = queue[cur];
+    var letterSlots = getLetterSlots(w.en); // 找出所有应填字母的位置
+    
+    // 找出所有没有被系统强制提示出来的坑位（也就是留给用户打字的坑位）
+    var nonHintLetterSlots = letterSlots.filter(p => revealedPos.indexOf(p) < 0);
+    
+    // 按照顺序把手写的字母填回坑位中
+    var answerArray = [];
+    var typedCharIdx = 0;
+    
+    for(let i=0; i<w.en.length; i++) {
+      if(isLetter(w.en[i])) {
+        if(revealedPos.indexOf(i) >= 0) {
+          // 这一格是被提示出来的正确字母
+          answerArray.push(w.en[i].toLowerCase());
+        } else {
+          // 这一格是用户自己打的字母
+          if(typedCharIdx < typed.length) {
+            answerArray.push(typed[typedCharIdx].toLowerCase());
+            typedCharIdx++;
+          }
+        }
+      }
+    }
+    
+    var answerRaw = answerArray.join('');
+    
+    // 3. 终极比对
+    if(answerRaw === correctRaw){
       locked=true;
       $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ 
         if (!b.classList.contains('space') && !b.classList.contains('symbol')) {
@@ -347,6 +360,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
       renderBoxes();
     }
   }
+  /* ⬆️ 核心修复逻辑结束 ⬆️ */
   
   function doSkip(){
     prevState={
