@@ -26,11 +26,18 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
 
-/* 字母区域：空格依然保留下划线，但颜色变浅，用于视觉隔离 */
+/* 字母区域：空格下划线强制加深、加粗，形成强烈的视觉隔离 */
 .letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
 .letter-box { width: 28px; height: 36px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.2rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
-.letter-box.space { border-bottom-color: #e2e8f0; width: 20px; } /* 空格下划线变浅，拉开单词间距 */
-.letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; } /* 标点符号不占下划线 */
+
+/* ⬇️ 这里是核心修改部分 ⬇️ */
+.letter-box.space { 
+    border-bottom: 2.5px solid #a0aec0; /* 空格下划线变粗，颜色和字母横线一致，形成强烈区隔 */
+    width: 24px; /* 增加空格宽度，让单词间距更明显 */
+} 
+/* ⬆️ 这里是核心修改部分 ⬆️ */
+
+.letter-box.symbol { border-bottom: none; width: auto; min-width: 8px; color: #718096; } /* 标点符号不占用下划线 */
 .letter-box.hint-char  { color: #f59e0b; border-bottom-color: #f59e0b; }
 .letter-box.typed-char { color: #3b4a6b; border-bottom-color: #5b7fff; }
 .letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; }
@@ -77,7 +84,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     <h1>📖 英语默写</h1>
     <select id="vocab-select">
       <option value="" disabled selected>-- 请选择练习内容 --</option>
-      <option value="lesson_1">第一课词汇 (Lesson 1)</option>
       <option value="g3_t2_u4">三年级下册 - 第四单元</option>
     </select>
     <div class="textarea-hint">数据将自动从 GitHub 仓库远程拉取</div>
@@ -207,7 +213,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
       var box=document.createElement('div');
       
       if (c === ' ') {
-        box.className = 'letter-box space'; // 这里保留了横线，但颜色极浅
+        box.className = 'letter-box space'; // 这里保留了横线
         box.textContent = '';
       } else if (!isLetter(c)) {
         box.className = 'letter-box symbol';
@@ -244,7 +250,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     $('start-btn').textContent = "正在加载数据...";
     $('start-btn').disabled = true;
 
-    // 🎯 补全了 .json 的后缀
+    // 🎯 自动拼接 JSON 的文件地址，支持空格
     const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/vocabulary/${fileName}.json`;
 
     try {
@@ -272,6 +278,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     }
   };
 
+  // ---------- 原有背诵与交互逻辑保持原样 ----------
   function loadQuestion(){
     if(cur>=queue.length){ showResults(); return; }
     wrongAttempts=0; 
@@ -328,13 +335,14 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
         $('submit-btn').disabled=true;
         $('hint-label').textContent='答案：'+queue[cur].en;
         $('hint-label').classList.add('fail');
-        setTimeout(function(){ cur++; loadQuestion(); }, 2000); 
+        setTimeout(function(){ cur++; loadQuestion(); }, 2000); // 句子长，答案多显示一会
         return;
       }
       var el=$('letter-boxes');
       el.classList.add('shake');
       setTimeout(function(){ el.classList.remove('shake'); }, 350);
       
+      // 增加提示：每次放出一个随机字母
       revealedPos.push(shuffledIdx[wrongAttempts-1]);
       $('hint-label').textContent=hintLabelText();
       typed='';
@@ -377,6 +385,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     var letterSlots = getLetterSlots(str);
     var maxLen = letterSlots.length - revealedPos.length;
     
+    // 过滤：手写或键盘输入的非字母字符直接无视
     var val = e.target.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
     if (val.length > maxLen) { val = val.slice(0, maxLen); }
     typed = val;
