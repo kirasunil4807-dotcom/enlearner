@@ -356,8 +356,6 @@ audio { display: none; }
     } else {
       soundError.currentTime=0; soundError.play().catch(function(){});
       submitAttempts++;
-      var hintDisabled = $('hint-btn').disabled;
-      if(submitAttempts>=2){ $('hint-btn').disabled=true; }
       if(submitAttempts>=3){
         locked=true;
         results.push({en:w.en, zh:w.zh, status:'hinted'});
@@ -375,7 +373,7 @@ audio { display: none; }
         el.classList.remove('shake');
         typed=''; $('pencil-input').value='';
         renderBoxes();
-        if(!$('hint-btn').disabled) enterPickMode();
+        if(wrongAttempts<2) enterPickMode();
       }, 350);
     }
   }
