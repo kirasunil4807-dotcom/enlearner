@@ -144,6 +144,7 @@ audio { display: none; }
   var revealedPos=[];
   var isErrorBankMode=false;
   var pickingHint=false;
+  var submitAttempts=0;
 
   const soundSuccess = document.getElementById('audio-success');
   const soundError   = document.getElementById('audio-error');
@@ -288,6 +289,7 @@ audio { display: none; }
     $('pencil-input').value=''; $('pencil-input').disabled=false;
     renderBoxes();
     $('pencil-input').focus();
+    wrongAttempts=0; locked=false; typed=''; revealedPos=[]; pickingHint=false; submitAttempts=0;
   }
 
   function enterPickMode(){
@@ -332,6 +334,7 @@ audio { display: none; }
       return;
     }
     soundHint.currentTime=0; soundHint.play().catch(function(){});
+    if(wrongAttempts>=2){ $('hint-btn').disabled=true; }
     $('hint-label').textContent=hintLabelText();
     $('hint-btn').textContent='提示';
     typed=''; $('pencil-input').value='';
@@ -369,6 +372,18 @@ audio { display: none; }
       setTimeout(function(){ cur++; loadQuestion(); }, 900);
     } else {
       soundError.currentTime=0; soundError.play().catch(function(){});
+      submitAttempts++;
+      if(submitAttempts>=3){
+        locked=true;
+        results.push({en:w.en, zh:w.zh, status:'hinted'});
+        addToErrorBank(w);
+        $('submit-btn').disabled=true;
+        $('hint-btn').disabled=true;
+        $('hint-label').textContent='答案：'+w.en;
+        $('hint-label').classList.add('fail');
+        setTimeout(function(){ cur++; loadQuestion(); }, 2000);
+        return;
+      }
       var el=$('letter-boxes');
       el.classList.add('shake');
       setTimeout(function(){
