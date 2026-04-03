@@ -10,7 +10,6 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100
 .container { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); padding: 36px 40px; width: 560px; max-width: 95vw; }
 h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px; }
 
-/* Input page */
 .vocab-checklist { border: 1.5px solid #d0d7f0; border-radius: 10px; background: #f7f8fc; max-height: 220px; overflow-y: auto; margin-bottom: 10px; }
 .select-all-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1.5px solid #d0d7f0; background: #eef1ff; border-radius: 10px 10px 0 0; }
 .select-all-row label { font-size: 0.85rem; color: #5b7fff; cursor: pointer; font-weight: 600; }
@@ -28,7 +27,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 #go-btn:hover:not(:disabled) { background: #3a5fef; }
 #go-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-/* Review page */
 #review-page { display: none; position: relative; }
 .progress-bar-wrap { background: #e8ecff; border-radius: 99px; height: 7px; margin-bottom: 6px; }
 .progress-bar { background: #5b7fff; height: 7px; border-radius: 99px; transition: width .4s; }
@@ -37,31 +35,12 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .reveal-bar { height: 4px; background: #e8ecff; border-radius: 99px; margin-bottom: 16px; overflow: hidden; }
 .reveal-bar-fill { height: 100%; width: 0%; background: #5b7fff; border-radius: 99px; }
 
-/* 喇叭按钮 */
-.speaker-btn {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: 1.5px solid #e2e8f0;
-  background: #f7f8fc;
-  color: #718096;
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .2s;
-}
+.speaker-btn { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid #e2e8f0; background: #f7f8fc; color: #718096; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
 .speaker-btn:hover { background: #eef1ff; border-color: #5b7fff; color: #5b7fff; }
 .speaker-btn.speaking { background: #eef1ff; border-color: #5b7fff; color: #5b7fff; animation: pulse .6s infinite alternate; }
-@keyframes pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
+@keyframes pulse { from{transform:scale(1)} to{transform:scale(1.12)} }
 
-.card {
-  border: 1.5px solid #e2e8f0; border-radius: 16px; background: #f7f8fc;
-  min-height: 180px; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 32px 24px; margin-bottom: 20px; gap: 16px;
-  user-select: none; -webkit-user-select: none; cursor: pointer; transition: background .15s;
-}
+.card { border: 1.5px solid #e2e8f0; border-radius: 16px; background: #f7f8fc; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; margin-bottom: 20px; gap: 16px; user-select: none; -webkit-user-select: none; cursor: pointer; transition: background .15s; }
 .card.pressing { background: #eef1ff; }
 .card-en { font-size: 1.8rem; font-weight: 700; color: #3b4a6b; text-align: center; letter-spacing: 1px; transition: opacity .15s; }
 .card-zh { font-size: 1.3rem; color: #718096; text-align: center; transition: opacity .15s; }
@@ -95,7 +74,10 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   </div>
 
   <div id="review-page">
-    <button class="speaker-btn" id="speaker-btn" title="朗读英文">🔊</button>
+    <div style="position:absolute;top:0;right:0;display:flex;align-items:center;gap:8px;">
+      <select id="voice-select" style="font-size:0.78rem;border:1.5px solid #e2e8f0;border-radius:8px;padding:4px 8px;background:#f7f8fc;color:#3b4a6b;outline:none;max-width:140px;"></select>
+      <button class="speaker-btn" id="speaker-btn" title="朗读英文">🔊</button>
+    </div>
     <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
     <div class="progress-text" id="prog-text"></div>
     <div class="hold-hint" id="hold-hint"></div>
@@ -122,29 +104,41 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
   var words=[], cur=0, mode='both';
   var revealed=false, pressTimer=null;
   var HOLD_MS=400;
+  var speaking=false;
 
   function $(id){ return document.getElementById(id); }
   function showPage(id){ ['input-page','review-page'].forEach(function(p){ $(p).style.display=p===id?'block':'none'; }); }
 
   // ---- TTS ----
-  var speaking=false;
+  function loadVoices(){
+    var voices=window.speechSynthesis.getVoices().filter(function(v){ return v.lang.startsWith('en'); });
+    var sel=$('voice-select');
+    sel.innerHTML='';
+    voices.forEach(function(v,i){
+      var opt=document.createElement('option');
+      opt.value=i;
+      opt.textContent=v.name;
+      sel.appendChild(opt);
+    });
+  }
+  if(window.speechSynthesis){
+    window.speechSynthesis.onvoiceschanged=loadVoices;
+    loadVoices();
+  }
+
   function speak(text, onEnd){
     if(!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     var utt=new SpeechSynthesisUtterance(text);
     utt.lang='en-US';
     utt.rate=0.9;
+    var voices=window.speechSynthesis.getVoices().filter(function(v){ return v.lang.startsWith('en'); });
+    var idx=parseInt($('voice-select').value)||0;
+    if(voices[idx]) utt.voice=voices[idx];
     speaking=true;
     $('speaker-btn').classList.add('speaking');
-    utt.onend=function(){
-      speaking=false;
-      $('speaker-btn').classList.remove('speaking');
-      if(onEnd) onEnd();
-    };
-    utt.onerror=function(){
-      speaking=false;
-      $('speaker-btn').classList.remove('speaking');
-    };
+    utt.onend=function(){ speaking=false; $('speaker-btn').classList.remove('speaking'); if(onEnd) onEnd(); };
+    utt.onerror=function(){ speaking=false; $('speaker-btn').classList.remove('speaking'); };
     window.speechSynthesis.speak(utt);
   }
 
@@ -219,12 +213,10 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
     $('reveal-fill').style.transition='none'; $('reveal-fill').style.width='0%';
     $('card-en').textContent=w.en;
     $('card-zh').textContent=w.zh;
-    window.speechSynthesis && window.speechSynthesis.cancel();
+    window.speechSynthesis&&window.speechSynthesis.cancel();
     speaking=false; $('speaker-btn').classList.remove('speaking');
-
     if(mode==='both'){
       $('card-en').style.opacity='1'; $('card-zh').style.opacity='1'; $('hold-hint').textContent='';
-      // 全显示模式自动朗读英文
       speak(w.en);
     } else if(mode==='en2zh'){
       $('card-en').style.opacity='1'; $('card-zh').style.opacity='0'; $('hold-hint').textContent='按住显示中文';
@@ -245,7 +237,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
         $('card-zh').style.opacity='1';
       } else {
         $('card-en').style.opacity='1';
-        // 中翻英长按揭示后朗读英文
         speak(words[cur].en);
       }
       $('hold-hint').textContent='';
