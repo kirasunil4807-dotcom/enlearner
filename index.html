@@ -35,6 +35,7 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .mode-tag { text-align: center; font-size: 0.78rem; color: #f97316; font-weight: 600; margin-bottom: 8px; min-height: 16px; letter-spacing: 1px; }
 .chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
+.hint-label.fail { color: #ef4444; font-weight: 700; }
 .hint-pick-tip { text-align: center; font-size: 0.82rem; color: #f97316; min-height: 20px; margin-bottom: 8px; }
 .letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
 .letter-box { width: 28px; height: 36px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.2rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
@@ -139,7 +140,7 @@ audio { display: none; }
   const LS_KEY = 'vocab_error_bank';
 
   var words=[], queue=[], results=[];
-  var cur=0, wrongAttempts=0,
+  var cur=0, wrongAttempts=0;          // FIX 1: 逗号→分号
   var locked=false, typed='';
   var revealedPos=[];
   var isErrorBankMode=false;
@@ -242,6 +243,29 @@ audio { display: none; }
     return queue[cur].en.split('').map(function(c,i){ if(!isLetter(c)) return c; return revealedPos.indexOf(i)>=0?c:'_'; }).join(' ');
   }
 
+  // FIX 2: 提示揭示后如果所有字母都已揭示，自动算作 hinted 通过
+  function checkAllRevealed(){
+    var w=queue[cur];
+    var letterSlots=getLetterSlots(w.en);
+    var nonHint=letterSlots.filter(function(p){ return revealedPos.indexOf(p)<0; });
+    if(nonHint.length===0){
+      // 所有字母都被提示揭示了，自动判定为 hinted
+      locked=true;
+      $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){
+        if(!b.classList.contains('space')&&!b.classList.contains('symbol'))
+          b.className='letter-box correct-char';
+      });
+      results.push({en:w.en, zh:w.zh, status:'hinted'});
+      addToErrorBank(w);
+      $('pencil-input').disabled=true;
+      $('submit-btn').disabled=true;
+      $('hint-btn').disabled=true;
+      setTimeout(function(){ cur++; loadQuestion(); }, 900);
+      return true;
+    }
+    return false;
+  }
+
   function renderBoxes(){
     var w=queue[cur], el=$('letter-boxes');
     var letterSlots=getLetterSlots(w.en);
@@ -321,6 +345,10 @@ audio { display: none; }
     $('hint-label').textContent=hintLabelText();
     $('hint-btn').textContent='提示';
     typed=''; $('pencil-input').value='';
+
+    // FIX 2: 揭示后检查是否所有字母都被揭示了
+    if(checkAllRevealed()) return;
+
     renderBoxes();
     $('pencil-input').focus();
   }
@@ -330,7 +358,7 @@ audio { display: none; }
     if(pickingHint){ exitPickMode(); } else { enterPickMode(); }
   };
 
-   function doSubmit(){
+  function doSubmit(){
     if(locked||!typed) return;
     if(pickingHint){ exitPickMode(); return; }
     var w=queue[cur], correctRaw=w.en.toLowerCase().replace(/[^a-z]/g,'');
