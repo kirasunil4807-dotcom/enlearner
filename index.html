@@ -332,6 +332,15 @@ audio { display: none; }
   function pickLetter(pos){
     revealedPos.push(pos);
     wrongAttempts++;
+    // 第3次提示超出，播错误音；否则播提示音
+    if(wrongAttempts > 2){
+      soundError.currentTime=0; soundError.play().catch(function(){});
+    } else {
+      soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
+    }
+    pickingHint=false;
+    revealedPos.push(pos);
+    wrongAttempts++;
     pickingHint=false;
     $('hint-btn').classList.remove('picking');
     $('hint-pick-tip').textContent='';
@@ -394,10 +403,13 @@ audio { display: none; }
       soundError.currentTime=0; soundError.play().catch(function(){});
       var el=$('letter-boxes');
       el.classList.add('shake');
-      setTimeout(function(){ el.classList.remove('shake'); }, 350);
-      typed=''; $('pencil-input').value=''; renderBoxes();
+      setTimeout(function(){
+        el.classList.remove('shake');
+        typed=''; $('pencil-input').value='';
+        renderBoxes();
+        enterPickMode();
+      }, 350);
     }
-  }
 
   $('pencil-input').addEventListener('input', function(e){
     if(locked) return;
