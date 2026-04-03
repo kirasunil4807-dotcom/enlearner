@@ -373,6 +373,7 @@ audio { display: none; }
     } else {
       soundError.currentTime=0; soundError.play().catch(function(){});
       submitAttempts++;
+      if(submitAttempts>=2){ $('hint-btn').disabled=true; }
       if(submitAttempts>=3){
         locked=true;
         results.push({en:w.en, zh:w.zh, status:'hinted'});
