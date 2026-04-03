@@ -139,7 +139,7 @@ audio { display: none; }
   const LS_KEY = 'vocab_error_bank';
 
   var words=[], queue=[], results=[];
-  var cur=0, wrongAttempts=0, submitAttempts=0;
+  var cur=0, wrongAttempts=0,
   var locked=false, typed='';
   var revealedPos=[];
   var isErrorBankMode=false;
@@ -273,7 +273,7 @@ audio { display: none; }
 
   function loadQuestion(){
     if(cur>=queue.length){ soundCheer.currentTime=0; soundCheer.play().catch(function(){}); showResults(); return; }
-    wrongAttempts=0; submitAttempts=0; locked=false; typed=''; revealedPos=[]; pickingHint=false;
+    wrongAttempts=0; locked=false; typed=''; revealedPos=[]; pickingHint=false;
     updateProgress();
     $('chinese-display').textContent=queue[cur].zh;
     $('hint-label').textContent='';
@@ -330,7 +330,7 @@ audio { display: none; }
     if(pickingHint){ exitPickMode(); } else { enterPickMode(); }
   };
 
-  function doSubmit(){
+   function doSubmit(){
     if(locked||!typed) return;
     if(pickingHint){ exitPickMode(); return; }
     var w=queue[cur], correctRaw=w.en.toLowerCase().replace(/[^a-z]/g,'');
@@ -346,7 +346,7 @@ audio { display: none; }
       soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
       locked=true;
       $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ if(!b.classList.contains('space')&&!b.classList.contains('symbol')) b.className='letter-box correct-char'; });
-      var status=wrongAttempts===0&&submitAttempts===0?'correct':'hinted';
+      var status=wrongAttempts===0?'correct':'hinted';
       results.push({en:w.en, zh:w.zh, status:status});
       if(status==='correct'){ if(isErrorBankMode) removeFromErrorBank(w); }
       else { addToErrorBank(w); }
@@ -355,8 +355,8 @@ audio { display: none; }
       setTimeout(function(){ cur++; loadQuestion(); }, 900);
     } else {
       soundError.currentTime=0; soundError.play().catch(function(){});
-      submitAttempts++;
-      if(submitAttempts>=3){
+      if(wrongAttempts>=2){
+        // 已用完2次提示，直接判定失败
         locked=true;
         results.push({en:w.en, zh:w.zh, status:'hinted'});
         addToErrorBank(w);
@@ -365,19 +365,18 @@ audio { display: none; }
         $('hint-label').textContent='答案：'+w.en;
         $('hint-label').classList.add('fail');
         setTimeout(function(){ cur++; loadQuestion(); }, 2000);
-        return;
+      } else {
+        var el=$('letter-boxes');
+        el.classList.add('shake');
+        setTimeout(function(){
+          el.classList.remove('shake');
+          typed=''; $('pencil-input').value='';
+          renderBoxes();
+          enterPickMode();
+        }, 350);
       }
-      var el=$('letter-boxes');
-      el.classList.add('shake');
-      setTimeout(function(){
-        el.classList.remove('shake');
-        typed=''; $('pencil-input').value='';
-        renderBoxes();
-        if(wrongAttempts<2) enterPickMode();
-      }, 350);
     }
   }
-
   $('pencil-input').addEventListener('input', function(e){
     if(locked) return;
     if(pickingHint){ e.target.value=typed; return; }
