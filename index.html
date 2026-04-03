@@ -391,6 +391,12 @@ audio { display: none; }
         el.classList.remove('shake');
         typed=''; $('pencil-input').value='';
         renderBoxes();
+        setTimeout(function(){
+        el.classList.remove('shake');
+        typed=''; $('pencil-input').value='';
+        renderBoxes();
+        if(!$('hint-btn').disabled) enterPickMode();
+      }, 350);
         enterPickMode();
       }, 350);
     }
