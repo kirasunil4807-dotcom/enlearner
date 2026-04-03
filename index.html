@@ -130,7 +130,7 @@ audio { display: none; }
 <audio id="audio-success" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3" preload="auto"></audio>
 <audio id="audio-error" src="https://assets.mixkit.co/active_storage/sfx/213/213-preview.mp3" preload="auto"></audio>
 <audio id="audio-cheer" src="https://assets.mixkit.co/active_storage/sfx/1993/1993-preview.mp3" preload="auto"></audio>
-  <audio id="audio-hint" src="https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3" preload="auto"></audio>
+<audio id="audio-hint" src="https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3" preload="auto"></audio>
 <script>
 (function(){
   const GITHUB_USERNAME = 'kirasunil4807-dotcom';
@@ -139,18 +139,16 @@ audio { display: none; }
   const LS_KEY = 'vocab_error_bank';
 
   var words=[], queue=[], results=[];
-  var cur=0, wrongAttempts=0;
+  var cur=0, wrongAttempts=0, submitAttempts=0;
   var locked=false, typed='';
   var revealedPos=[];
   var isErrorBankMode=false;
   var pickingHint=false;
-  var submitAttempts=0;
 
   const soundSuccess = document.getElementById('audio-success');
   const soundError   = document.getElementById('audio-error');
   const soundCheer   = document.getElementById('audio-cheer');
-  const soundHint = document.getElementById('audio-hint');
-
+  const soundHint    = document.getElementById('audio-hint');
 
   function $(id){ return document.getElementById(id); }
   function shuffle(arr){ for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),t=arr[i];arr[i]=arr[j];arr[j]=t; } return arr; }
@@ -275,7 +273,7 @@ audio { display: none; }
 
   function loadQuestion(){
     if(cur>=queue.length){ soundCheer.currentTime=0; soundCheer.play().catch(function(){}); showResults(); return; }
-    wrongAttempts=0; locked=false; typed=''; revealedPos=[]; pickingHint=false;
+    wrongAttempts=0; submitAttempts=0; locked=false; typed=''; revealedPos=[]; pickingHint=false;
     updateProgress();
     $('chinese-display').textContent=queue[cur].zh;
     $('hint-label').textContent='';
@@ -289,7 +287,6 @@ audio { display: none; }
     $('pencil-input').value=''; $('pencil-input').disabled=false;
     renderBoxes();
     $('pencil-input').focus();
-    wrongAttempts=0; locked=false; typed=''; revealedPos=[]; pickingHint=false; submitAttempts=0;
   }
 
   function enterPickMode(){
@@ -319,22 +316,8 @@ audio { display: none; }
     $('hint-btn').classList.remove('picking');
     $('hint-pick-tip').textContent='';
     var w=queue[cur];
-    if(wrongAttempts>2){
-      soundError.currentTime=0; soundError.play().catch(function(){});
-      locked=true;
-      results.push({en:w.en, zh:w.zh, status:'hinted'});
-      addToErrorBank(w);
-      $('submit-btn').disabled=true;
-      $('hint-btn').disabled=true;
-      $('hint-label').textContent='答案：'+w.en;
-      $('hint-label').classList.add('fail');
-      $('hint-btn').textContent='提示';
-      renderBoxes();
-      setTimeout(function(){ cur++; loadQuestion(); }, 2000);
-      return;
-    }
-    soundHint.currentTime=0; soundHint.play().catch(function(){});
     if(wrongAttempts>=2){ $('hint-btn').disabled=true; }
+    soundHint.currentTime=0; soundHint.play().catch(function(){});
     $('hint-label').textContent=hintLabelText();
     $('hint-btn').textContent='提示';
     typed=''; $('pencil-input').value='';
@@ -363,9 +346,9 @@ audio { display: none; }
       soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
       locked=true;
       $('letter-boxes').querySelectorAll('.letter-box').forEach(function(b){ if(!b.classList.contains('space')&&!b.classList.contains('symbol')) b.className='letter-box correct-char'; });
-      var status=wrongAttempts===0?'correct':'hinted';
+      var status=wrongAttempts===0&&submitAttempts===0?'correct':'hinted';
       results.push({en:w.en, zh:w.zh, status:status});
-      if(wrongAttempts===0){ if(isErrorBankMode) removeFromErrorBank(w); }
+      if(status==='correct'){ if(isErrorBankMode) removeFromErrorBank(w); }
       else { addToErrorBank(w); }
       $('pencil-input').disabled=true;
       $('hint-btn').disabled=true;
@@ -373,6 +356,7 @@ audio { display: none; }
     } else {
       soundError.currentTime=0; soundError.play().catch(function(){});
       submitAttempts++;
+      var hintDisabled = $('hint-btn').disabled;
       if(submitAttempts>=2){ $('hint-btn').disabled=true; }
       if(submitAttempts>=3){
         locked=true;
@@ -388,10 +372,6 @@ audio { display: none; }
       var el=$('letter-boxes');
       el.classList.add('shake');
       setTimeout(function(){
-        el.classList.remove('shake');
-        typed=''; $('pencil-input').value='';
-        renderBoxes();
-        setTimeout(function(){
         el.classList.remove('shake');
         typed=''; $('pencil-input').value='';
         renderBoxes();
