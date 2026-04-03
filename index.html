@@ -9,7 +9,6 @@
 body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding-bottom: 50px; }
 .container { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); padding: 36px 40px; width: 680px; max-width: 95vw; position: relative; }
 h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px; }
-
 .vocab-checklist { border: 1.5px solid #d0d7f0; border-radius: 10px; background: #f7f8fc; max-height: 220px; overflow-y: auto; margin-bottom: 10px; }
 .select-all-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1.5px solid #d0d7f0; background: #eef1ff; border-radius: 10px 10px 0 0; }
 .select-all-row label { font-size: 0.85rem; color: #5b7fff; cursor: pointer; font-weight: 600; }
@@ -29,7 +28,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .error-bank-badge { background: #f97316; color: #fff; border-radius: 99px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
 .error-bank-clear { font-size: 0.78rem; color: #999; text-align: center; margin-top: 8px; cursor: pointer; text-decoration: underline; }
 .error-bank-clear:hover { color: #e05; }
-
 #practice-page { display: none; }
 .progress-bar-wrap { background: #e8ecff; border-radius: 99px; height: 7px; margin-bottom: 6px; }
 .progress-bar { background: #5b7fff; height: 7px; border-radius: 99px; transition: width .4s; }
@@ -38,7 +36,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
 .hint-pick-tip { text-align: center; font-size: 0.82rem; color: #f97316; min-height: 20px; margin-bottom: 8px; }
-
 .letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
 .letter-box { width: 28px; height: 36px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.2rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
 .letter-box.space { border-bottom: none; width: 20px; }
@@ -48,24 +45,12 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .letter-box.correct-char { color: #10b981; border-bottom-color: #10b981; animation: correct-pop 0.3s ease; }
 .letter-box.cursor { border-bottom-color: #5b7fff; }
 .letter-box.cursor::after { content:''; display:block; width:2px; height:16px; background:#5b7fff; position:absolute; bottom:4px; animation: blink .8s infinite; }
-
-/* 提示选择模式 */
-.letter-boxes.picking .letter-box.pickable {
-  border-bottom-color: #f97316;
-  cursor: pointer;
-  background: #fff7ed;
-  border-radius: 4px 4px 0 0;
-}
-.letter-boxes.picking .letter-box.pickable:hover {
-  background: #ffedd5;
-  border-bottom-color: #ea580c;
-}
-
+.letter-boxes.picking .letter-box.pickable { border-bottom-color: #f97316; cursor: pointer; background: #fff7ed; border-radius: 4px 4px 0 0; }
+.letter-boxes.picking .letter-box.pickable:hover { background: #ffedd5; border-bottom-color: #ea580c; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
 @keyframes correct-pop { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
 .letter-boxes.shake { animation: shake .3s; }
-
 .pencil-input-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
 .pencil-input { width: 100%; max-width: 400px; border: 1px solid #d0d7f0; background: #f7f8fc; border-radius: 8px; padding: 10px; font-size: 1.1rem; text-align: center; outline: none; color: #3b4a6b; caret-color: #5b7fff; letter-spacing: 1px; }
 .pencil-input:focus { border-color: #5b7fff; background: #fff; }
@@ -77,7 +62,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .btn-hint:hover:not(:disabled) { background: #ffedd5; }
 .btn-hint:disabled { opacity: .35; cursor: default; }
 .btn-hint.picking { background: #ffedd5; border-color: #f97316; font-weight: 600; }
-
 #result-page { display: none; }
 .score-circle { width: 110px; height: 110px; border-radius: 50%; background: #5b7fff; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 4px 16px rgba(91,127,255,.35); }
 .score-num { font-size: 2.2rem; font-weight: 800; line-height: 1; }
@@ -170,7 +154,6 @@ audio { display: none; }
   function isLetter(c){ return /^[a-zA-Z]$/.test(c); }
   function getLetterSlots(str){ var s=[]; for(var i=0;i<str.length;i++) if(isLetter(str[i])) s.push(i); return s; }
 
-  // ---- 错题集 ----
   function loadErrorBank(){ try { return JSON.parse(localStorage.getItem(LS_KEY))||[]; } catch(e){ return []; } }
   function saveErrorBank(bank){ localStorage.setItem(LS_KEY, JSON.stringify(bank)); }
   function addToErrorBank(word){
@@ -199,7 +182,6 @@ audio { display: none; }
     loadQuestion();
   };
 
-  // ---- 动态加载词库 ----
   (async function loadIndex(){
     try {
       var res=await fetch(BASE+'index.json');
@@ -251,7 +233,6 @@ audio { display: none; }
     finally { $('start-btn').textContent='开始练习 →'; updateSelection(); }
   };
 
-  // ---- 练习逻辑 ----
   function updateProgress(){ var pct=queue.length?(cur/queue.length*100).toFixed(0):0; $('prog-bar').style.width=pct+'%'; $('prog-text').textContent=cur+' / '+queue.length; }
 
   function hintLabelText(){
@@ -276,7 +257,6 @@ audio { display: none; }
           var ui=nonHint.indexOf(i);
           if(ui>=0&&ui<typed.length){ box.textContent=typed[ui]; box.className+=' typed-char'; }
           else if(i===cursorPos&&!locked&&!pickingHint){ box.className+=' cursor'; }
-          // 提示选择模式：可点击的位
           if(pickingHint && revealedPos.indexOf(i)<0){
             box.className+=' pickable';
             (function(pos){ box.onclick=function(e){ e.stopPropagation(); pickLetter(pos); }; })(i);
@@ -307,10 +287,8 @@ audio { display: none; }
     $('pencil-input').focus();
   }
 
-  // ---- 提示选择 ----
   function enterPickMode(){
-    var w=queue[cur];
-    var letterSlots=getLetterSlots(w.en);
+    var letterSlots=getLetterSlots(queue[cur].en);
     var available=letterSlots.filter(function(p){ return revealedPos.indexOf(p)<0; });
     if(!available.length) return;
     pickingHint=true;
@@ -332,23 +310,12 @@ audio { display: none; }
   function pickLetter(pos){
     revealedPos.push(pos);
     wrongAttempts++;
-    // 第3次提示超出，播错误音；否则播提示音
-    if(wrongAttempts > 2){
-      soundError.currentTime=0; soundError.play().catch(function(){});
-    } else {
-      soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
-    }
-    pickingHint=false;
-    revealedPos.push(pos);
-    wrongAttempts++;
     pickingHint=false;
     $('hint-btn').classList.remove('picking');
     $('hint-pick-tip').textContent='';
-
-    // 超出提示次数
     var w=queue[cur];
-    var letterSlots=getLetterSlots(w.en);
     if(wrongAttempts>2){
+      soundError.currentTime=0; soundError.play().catch(function(){});
       locked=true;
       results.push({en:w.en, zh:w.zh, status:'hinted'});
       addToErrorBank(w);
@@ -361,10 +328,9 @@ audio { display: none; }
       setTimeout(function(){ cur++; loadQuestion(); }, 2000);
       return;
     }
-
+    soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
     $('hint-label').textContent=hintLabelText();
     $('hint-btn').textContent='提示';
-    // 清空已输入（提示后重新输入）
     typed=''; $('pencil-input').value='';
     renderBoxes();
     $('pencil-input').focus();
@@ -372,8 +338,7 @@ audio { display: none; }
 
   $('hint-btn').onclick=function(){
     if(locked) return;
-    if(pickingHint){ exitPickMode(); }
-    else { enterPickMode(); }
+    if(pickingHint){ exitPickMode(); } else { enterPickMode(); }
   };
 
   function doSubmit(){
@@ -410,6 +375,7 @@ audio { display: none; }
         enterPickMode();
       }, 350);
     }
+  }
 
   $('pencil-input').addEventListener('input', function(e){
     if(locked) return;
