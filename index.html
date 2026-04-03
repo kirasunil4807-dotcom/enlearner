@@ -130,6 +130,7 @@ audio { display: none; }
 <audio id="audio-success" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3" preload="auto"></audio>
 <audio id="audio-error" src="https://assets.mixkit.co/active_storage/sfx/213/213-preview.mp3" preload="auto"></audio>
 <audio id="audio-cheer" src="https://assets.mixkit.co/active_storage/sfx/1993/1993-preview.mp3" preload="auto"></audio>
+  <audio id="audio-hint" src="https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3" preload="auto"></audio>
 <script>
 (function(){
   const GITHUB_USERNAME = 'kirasunil4807-dotcom';
@@ -147,6 +148,8 @@ audio { display: none; }
   const soundSuccess = document.getElementById('audio-success');
   const soundError   = document.getElementById('audio-error');
   const soundCheer   = document.getElementById('audio-cheer');
+  const soundHint = document.getElementById('audio-hint');
+
 
   function $(id){ return document.getElementById(id); }
   function shuffle(arr){ for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),t=arr[i];arr[i]=arr[j];arr[j]=t; } return arr; }
@@ -328,7 +331,7 @@ audio { display: none; }
       setTimeout(function(){ cur++; loadQuestion(); }, 2000);
       return;
     }
-    soundSuccess.currentTime=0; soundSuccess.play().catch(function(){});
+    soundHint.currentTime=0; soundHint.play().catch(function(){});
     $('hint-label').textContent=hintLabelText();
     $('hint-btn').textContent='提示';
     typed=''; $('pencil-input').value='';
