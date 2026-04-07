@@ -36,6 +36,15 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .chinese-word { text-align: center; font-size: 1.6rem; font-weight: 700; color: #3b4a6b; margin-bottom: 24px; letter-spacing: 1px; line-height: 1.4; }
 .hint-label { text-align: center; font-size: 0.88rem; color: #f59e0b; min-height: 22px; margin-bottom: 12px; font-weight: 500; letter-spacing: 2px; }
 .hint-label.fail { color: #ef4444; font-weight: 700; }
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.35); z-index:999; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal-box { background:#fff; border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,.18); padding:32px 36px; max-width:400px; width:90vw; text-align:center; animation: modalIn .25s ease; }
+@keyframes modalIn { from{transform:scale(.9);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-title { font-size:1rem; color:#ef4444; font-weight:700; margin-bottom:16px; }
+.modal-word { font-size:1.6rem; font-weight:800; color:#3b4a6b; letter-spacing:2px; margin-bottom:6px; }
+.modal-zh { font-size:1.1rem; color:#718096; margin-bottom:24px; }
+.modal-btn { width:100%; padding:12px; background:#5b7fff; color:#fff; border:none; border-radius:10px; font-size:1rem; cursor:pointer; }
+.modal-btn:hover { background:#3a5fef; }
 .hint-pick-tip { text-align: center; font-size: 0.82rem; color: #f97316; min-height: 20px; margin-bottom: 8px; }
 .letter-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; cursor: text; line-height: 2.2; }
 .letter-box { width: 28px; height: 36px; border-bottom: 2.5px solid #a0aec0; display: flex; align-items: flex-end; justify-content: center; font-size: 1.2rem; font-weight: 600; color: #3b4a6b; padding-bottom: 2px; position: relative; }
@@ -63,12 +72,6 @@ h1 { text-align: center; font-size: 1.5rem; color: #3b4a6b; margin-bottom: 24px;
 .btn-hint:hover:not(:disabled) { background: #ffedd5; }
 .btn-hint:disabled { opacity: .35; cursor: default; }
 .btn-hint.picking { background: #ffedd5; border-color: #f97316; font-weight: 600; }
-.btn-speak { flex: 0 0 auto; width: 46px; padding: 12px 0; background: #f7f8fc; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-.btn-speak:hover { background: #eef1ff; border-color: #5b7fff; color: #5b7fff; }
-.btn-speak.speaking { background: #eef1ff; border-color: #5b7fff; color: #5b7fff; animation: pulse .6s infinite alternate; }
-@keyframes pulse { from{transform:scale(1)} to{transform:scale(1.08)} }
-.tts-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
-.tts-row select { font-size: 0.78rem; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; background: #f7f8fc; color: #3b4a6b; outline: none; max-width: 180px; }
 #result-page { display: none; }
 .score-circle { width: 110px; height: 110px; border-radius: 50%; background: #5b7fff; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 4px 16px rgba(91,127,255,.35); }
 .score-num { font-size: 2.2rem; font-weight: 800; line-height: 1; }
@@ -102,9 +105,6 @@ audio { display: none; }
   </div>
 
   <div id="practice-page">
-    <div class="tts-row">
-      <select id="voice-select"></select>
-    </div>
     <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
     <div class="progress-text" id="prog-text"></div>
     <div class="mode-tag" id="mode-tag"></div>
@@ -118,7 +118,6 @@ audio { display: none; }
     <div class="btn-row">
       <button class="btn-submit" id="submit-btn">提交</button>
       <button class="btn-hint" id="hint-btn">提示</button>
-      <button class="btn-speak" id="speak-btn" title="朗读英文">🔊</button>
     </div>
   </div>
 
@@ -135,6 +134,15 @@ audio { display: none; }
     <div class="result-error-hint" id="result-error-hint"></div>
     <button id="redo-btn">重练错题</button>
     <button id="restart-btn">重新选择练习内容</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="answer-modal">
+  <div class="modal-box">
+    <div class="modal-title">❌ 正确答案</div>
+    <div class="modal-word" id="modal-word"></div>
+    <div class="modal-zh" id="modal-zh"></div>
+    <button class="modal-btn" id="modal-btn">知道了，继续 →</button>
   </div>
 </div>
 
@@ -155,7 +163,6 @@ audio { display: none; }
   var revealedPos=[];
   var isErrorBankMode=false;
   var pickingHint=false;
-  var speaking=false;
 
   const soundSuccess = document.getElementById('audio-success');
   const soundError   = document.getElementById('audio-error');
@@ -168,29 +175,7 @@ audio { display: none; }
   function isLetter(c){ return /^[a-zA-Z]$/.test(c); }
   function getLetterSlots(str){ var s=[]; for(var i=0;i<str.length;i++) if(isLetter(str[i])) s.push(i); return s; }
 
-  // ---- TTS ----
-  function loadVoices(){
-    var voices=window.speechSynthesis.getVoices().filter(function(v){ return v.lang.startsWith('en'); });
-    var sel=$('voice-select');
-    sel.innerHTML='';
-    if(!voices.length){
-      var opt=document.createElement('option');
-      opt.textContent='默认语音';
-      sel.appendChild(opt);
-      return;
-    }
-    voices.forEach(function(v,i){
-      var opt=document.createElement('option');
-      opt.value=i;
-      opt.textContent=v.name;
-      sel.appendChild(opt);
-    });
-  }
-  if(window.speechSynthesis){
-    window.speechSynthesis.onvoiceschanged=loadVoices;
-    loadVoices();
-  }
-
+  // ---- TTS (无 UI，仅内部调用) ----
   function speak(text){
     if(!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -198,26 +183,14 @@ audio { display: none; }
     utt.lang='en-US';
     utt.rate=0.85;
     var voices=window.speechSynthesis.getVoices().filter(function(v){ return v.lang.startsWith('en'); });
-    var idx=parseInt($('voice-select').value)||0;
-    if(voices[idx]) utt.voice=voices[idx];
-    speaking=true;
-    $('speak-btn').classList.add('speaking');
-    utt.onend=function(){ speaking=false; $('speak-btn').classList.remove('speaking'); };
-    utt.onerror=function(){ speaking=false; $('speak-btn').classList.remove('speaking'); };
+    if(voices.length) utt.voice=voices[0];
     window.speechSynthesis.speak(utt);
   }
-
-  $('speak-btn').onclick=function(){
-    if(!queue.length||cur>=queue.length) return;
-    if(speaking){ window.speechSynthesis.cancel(); speaking=false; $('speak-btn').classList.remove('speaking'); return; }
-    // 朗读当前单词的英文（算作使用了提示）
-    speak(queue[cur].en);
-    // 朗读也消耗一次提示机会
-    if(wrongAttempts<2){
-      wrongAttempts++;
-      if(wrongAttempts>=2){ $('hint-btn').disabled=true; }
-    }
-  };
+  // 预加载语音列表
+  if(window.speechSynthesis){
+    window.speechSynthesis.onvoiceschanged=function(){};
+    window.speechSynthesis.getVoices();
+  }
 
   // ---- 错题集 ----
   function loadErrorBank(){ try { return JSON.parse(localStorage.getItem(LS_KEY))||[]; } catch(e){ return []; } }
@@ -322,7 +295,11 @@ audio { display: none; }
       $('pencil-input').disabled=true;
       $('submit-btn').disabled=true;
       $('hint-btn').disabled=true;
-      setTimeout(function(){ cur++; loadQuestion(); }, 900);
+      // 全部揭示，弹窗显示
+      $('modal-word').textContent=w.en;
+      $('modal-zh').textContent=w.zh;
+      $('answer-modal').classList.add('show');
+      speak(w.en);
       return true;
     }
     return false;
@@ -361,12 +338,10 @@ audio { display: none; }
     if(cur>=queue.length){
       soundCheer.currentTime=0; soundCheer.play().catch(function(){});
       if(window.speechSynthesis) window.speechSynthesis.cancel();
-      speaking=false; $('speak-btn').classList.remove('speaking');
       showResults(); return;
     }
     wrongAttempts=0; locked=false; typed=''; revealedPos=[]; pickingHint=false;
     if(window.speechSynthesis) window.speechSynthesis.cancel();
-    speaking=false; $('speak-btn').classList.remove('speaking');
     updateProgress();
     $('chinese-display').textContent=queue[cur].zh;
     $('hint-label').textContent='';
@@ -411,6 +386,8 @@ audio { display: none; }
     var w=queue[cur];
     if(wrongAttempts>=2){ $('hint-btn').disabled=true; }
     soundHint.currentTime=0; soundHint.play().catch(function(){});
+    // 选字母提示时同时朗读单词
+    speak(w.en);
     $('hint-label').textContent=hintLabelText();
     $('hint-btn').textContent='提示';
     typed=''; $('pencil-input').value='';
@@ -444,6 +421,8 @@ audio { display: none; }
       results.push({en:w.en, zh:w.zh, status:status});
       if(status==='correct'){ if(isErrorBankMode) removeFromErrorBank(w); }
       else { addToErrorBank(w); }
+      // 答对时朗读单词
+      speak(w.en);
       $('pencil-input').disabled=true;
       $('hint-btn').disabled=true;
       setTimeout(function(){ cur++; loadQuestion(); }, 900);
@@ -455,9 +434,11 @@ audio { display: none; }
         addToErrorBank(w);
         $('submit-btn').disabled=true;
         $('hint-btn').disabled=true;
-        $('hint-label').textContent='答案：'+w.en;
-        $('hint-label').classList.add('fail');
-        setTimeout(function(){ cur++; loadQuestion(); }, 2000);
+        // 弹窗显示正确答案
+        $('modal-word').textContent=w.en;
+        $('modal-zh').textContent=w.zh;
+        $('answer-modal').classList.add('show');
+        speak(w.en);
       } else {
         var el=$('letter-boxes');
         el.classList.add('shake');
@@ -480,6 +461,10 @@ audio { display: none; }
   $('pencil-input').addEventListener('keydown', function(e){ if(e.key==='Enter'){ doSubmit(); e.preventDefault(); } });
   $('letter-boxes').onclick=function(e){ if(!pickingHint) $('pencil-input').focus(); };
   $('submit-btn').onclick=doSubmit;
+  $('modal-btn').onclick=function(){
+    $('answer-modal').classList.remove('show');
+    cur++; loadQuestion();
+  };
 
   function showResults(){
     showPage('result-page');
