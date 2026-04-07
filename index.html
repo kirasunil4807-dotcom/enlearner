@@ -202,8 +202,8 @@ audio { display: none; }
   if(window.speechSynthesis){ window.speechSynthesis.onvoiceschanged=function(){}; window.speechSynthesis.getVoices(); }
 
   // 显示/隐藏朗读按钮
-  function showSpeakBtn(){ if(wrongAttempts<MAX_HINTS&&!speakUsed) $('hint-speak-btn').classList.add('visible'); }
-  function hideSpeakBtn(){ $('hint-speak-btn').classList.remove('visible','speaking'); }
+  function showSpeakBtn(){ if(wrongAttempts<MAX_HINTS&&!speakUsed) $('hint-speak-btn').classList.add('visible'); else hideSpeakBtn(); }
+  function hideSpeakBtn(){ $('hint-speak-btn').classList.remove('visible','speaking'); if(window.speechSynthesis) window.speechSynthesis.cancel(); }
 
   // 更新提示按钮状态
   function updateHintState(){
