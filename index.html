@@ -396,6 +396,7 @@ audio { display: none; }
     $('hint-btn').classList.add('picking');
     $('hint-btn').textContent='取消';
     $('hint-pick-tip').textContent='👆 点击你想查看的字母位置';
+    showSpeakBtn();
     renderBoxes();
   }
 
@@ -404,6 +405,7 @@ audio { display: none; }
     $('hint-btn').classList.remove('picking');
     $('hint-btn').textContent='提示';
     $('hint-pick-tip').textContent='';
+    hideSpeakBtn();
     renderBoxes();
     $('pencil-input').focus();
   }
