@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>数学练习</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+body{font-family:-apple-system,'PingFang SC',sans-serif;background:linear-gradient(145deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.screen{display:none;width:100%;max-width:460px;padding:16px;flex-direction:column;align-items:center}
+.screen.active{display:flex}
+
+/* START */
+.card{background:white;border-radius:24px;padding:40px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2);width:100%}
+.icon{font-size:4rem;margin-bottom:12px}
+h1{font-size:2.2rem;color:#1a1a2e;margin-bottom:6px}
+.sub{color:#888;font-size:.95rem;margin-bottom:32px}
+.btn-main{background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:16px;padding:16px;font-size:1.15rem;font-weight:700;cursor:pointer;width:100%;box-shadow:0 8px 24px rgba(102,126,234,.4);transition:transform .1s}
+.btn-main:active{transform:scale(.97)}
+
+/* TOPBAR */
+.topbar{display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:14px}
+.dots{display:flex;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35);transition:all .3s}
+.dot.done{background:#4ade80}
+.dot.cur{background:white;transform:scale(1.2)}
+.timer{background:rgba(255,255,255,.2);color:white;font-size:1.1rem;font-weight:700;padding:8px 16px;border-radius:12px;min-width:80px;text-align:center;backdrop-filter:blur(4px)}
+
+/* QUESTION CARD */
+.qcard{background:white;border-radius:22px;padding:28px 20px 20px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.12);margin-bottom:14px;transition:background .25s}
+.qcard.ok{background:#f0fdf4}
+.qcard.no{background:#fff1f2}
+.qnum{font-size:.85rem;color:#bbb;margin-bottom:8px;font-weight:600;letter-spacing:1px}
+.qtext{font-size:3rem;font-weight:800;color:#1a1a2e;letter-spacing:3px;margin-bottom:20px}
+.arow{display:flex;align-items:center;justify-content:center;gap:14px}
+.agroup{display:flex;flex-direction:column;align-items:center;gap:5px}
+.abox{min-width:110px;height:62px;border:3px solid #e2e8f0;border-radius:14px;font-size:2rem;font-weight:700;color:#333;display:flex;align-items:center;justify-content:center;background:#f8fafc;transition:all .2s;cursor:pointer;padding:0 12px}
+.abox.active{border-color:#667eea;background:white;box-shadow:0 0 0 4px rgba(102,126,234,.15)}
+.abox.ok{border-color:#4ade80;color:#16a34a;background:#f0fdf4}
+.abox.no{border-color:#f87171;color:#dc2626;background:#fff1f2}
+.alabel{font-size:.8rem;color:#aaa;font-weight:600}
+.sep{font-size:1.8rem;color:#ccc;padding-bottom:22px}
+.cursor{display:inline-block;width:2px;height:1.8rem;background:#667eea;margin-left:2px;animation:blink 1s infinite;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.hint{font-size:.95rem;color:#e11d48;margin-top:10px;min-height:22px;font-weight:500}
+
+/* NUMPAD */
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.nbtn{background:white;border:none;border-radius:14px;height:70px;font-size:1.6rem;font-weight:600;color:#2d2d2d;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.1);transition:transform .1s,box-shadow .1s}
+.nbtn:active{transform:scale(.91);box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.nbtn.del{background:#fef3c7;color:#d97706}
+.nbtn.ok{background:linear-gradient(135deg,#4ade80,#22c55e);color:white;font-size:1.4rem}
+
+/* RESULTS */
+.rcard{background:white;border-radius:24px;padding:28px 20px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.rheader{text-align:center;margin-bottom:20px}
+.rheader h2{font-size:1.8rem;color:#333;margin-bottom:4px}
+.rscore{font-size:3.5rem;font-weight:800;color:#667eea}
+.rtime{font-size:1rem;color:#888;margin-top:4px}
+.qlist{list-style:none;margin-bottom:20px;max-height:300px;overflow-y:auto}
+.qitem{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:10px;margin-bottom:5px;font-size:.9rem}
+.qitem.c{background:#f0fdf4}
+.qitem.w{background:#fff1f2}
+.qtext{color:#333;font-weight:500}
+.qstatus{font-size:1.1rem}
+</style>
+</head>
+<body>
+
+<div id="s-start" class="screen active">
+  <div class="card">
+    <div class="icon">🧮</div>
+    <h1>数学练习</h1>
+    <p class="sub">10道题 · 加减乘除 · 计时挑战</p>
+    <button class="btn-main" onclick="startGame()">开始练习</button>
+  </div>
+</div>
+
+<div id="s-game" class="screen">
+  <div class="topbar">
+    <div class="dots" id="dots"></div>
+    <div class="timer" id="timer">0.0s</div>
+  </div>
+  <div class="qcard" id="qcard">
+    <div class="qnum" id="qnum">第 1 题</div>
+    <div class="qtext" id="qtext"></div>
+    <div class="arow" id="arow"></div>
+    <div class="hint" id="hint"></div>
+  </div>
+  <div class="numpad">
+    <button class="nbtn" onclick="press(7)">7</button>
+    <button class="nbtn" onclick="press(8)">8</button>
+    <button class="nbtn" onclick="press(9)">9</button>
+    <button class="nbtn" onclick="press(4)">4</button>
+    <button class="nbtn" onclick="press(5)">5</button>
+    <button class="nbtn" onclick="press(6)">6</button>
+    <button class="nbtn" onclick="press(1)">1</button>
+    <button class="nbtn" onclick="press(2)">2</button>
+    <button class="nbtn" onclick="press(3)">3</button>
+    <button class="nbtn del" onclick="del()">⌫</button>
+    <button class="nbtn" onclick="press(0)">0</button>
+    <button class="nbtn ok" onclick="submit()">✓</button>
+  </div>
+</div>
+
+<div id="s-results" class="screen">
+  <div class="rcard">
+    <div class="rheader">
+      <div class="icon" id="remoji">🎉</div>
+      <h2>完成啦！</h2>
+      <div class="rscore" id="rscore"></div>
+      <div class="rtime" id="rtime"></div>
+    </div>
+    <ul class="qlist" id="qlist"></ul>
+    <button class="btn-main" onclick="startGame()">再来一次 🔁</button>
+  </div>
+</div>
+
+<script>
+const N = 10;
+let qs=[], cur=0, log=[];
+let t0, tiv;
+let field='main', vals={main:'',rem:''}, locked=false;
+
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+
+function gen(){
+  const ops=['+','-','×','÷'];
+  const op=ops[rand(0,3)];
+  let a,b,ans;
+  if(op==='+'){
+    a=rand(1,999);b=rand(1,999-a);ans={main:a+b};
+  }else if(op==='-'){
+    a=rand(1,999);b=rand(1,a);ans={main:a-b};
+  }else if(op==='×'){
+    a=rand(2,99);b=rand(2,Math.min(99,Math.floor(999/a)));ans={main:a*b};
+  }else{
+    b=rand(2,30);a=rand(b,999);ans={main:Math.floor(a/b),rem:a%b};
+  }
+  return{op,a,b,ans,div:op==='÷'};
+}
+
+function show(id){
+  ['s-start','s-game','s-results'].forEach(s=>document.getElementById(s).classList.toggle('active',s===id));
+}
+
+function startGame(){
+  qs=Array.from({length:N},gen);
+  cur=0;log=[];
+  show('s-game');
+  renderDots();
+  clearInterval(tiv);
+  t0=Date.now();
+  tiv=setInterval(()=>document.getElementById('timer').textContent=((Date.now()-t0)/1000).toFixed(1)+'s',100);
+  loadQ();
+}
+
+function renderDots(){
+  const c=document.getElementById('dots');c.innerHTML='';
+  for(let i=0;i<N;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i<cur?' done':i===cur?' cur':'');
+    c.appendChild(d);
+  }
+}
+
+function loadQ(){
+  locked=false;vals={main:'',rem:''};field='main';
+  const q=qs[cur];
+  const qc=document.getElementById('qcard');qc.className='qcard';
+  document.getElementById('hint').textContent='';
+  document.getElementById('qnum').textContent=`第 ${cur+1} 题`;
+  document.getElementById('qtext').textContent=`${q.a} ${q.op} ${q.b} =`;
+  buildRow(q);renderDots();
+}
+
+function buildRow(q){
+  const row=document.getElementById('arow');row.innerHTML='';
+  if(q.div){
+    const g1=el('div','agroup'),b1=el('div','abox active'),l1=el('div','alabel');
+    b1.id='box-main';b1.onclick=()=>setF('main');l1.textContent='商';
+    g1.append(b1,l1);
+    const sp=el('div','sep');sp.textContent='···';
+    const g2=el('div','agroup'),b2=el('div','abox'),l2=el('div','alabel');
+    b2.id='box-rem';b2.onclick=()=>setF('rem');l2.textContent='余数';
+    g2.append(b2,l2);
+    row.append(g1,sp,g2);
+  }else{
+    const b=el('div','abox active');b.id='box-main';row.appendChild(b);
+  }
+  updateBoxes();
+}
+
+function el(tag,cls){const e=document.createElement(tag);e.className=cls;return e}
+
+function setF(f){
+  if(locked)return;field=f;
+  const m=document.getElementById('box-main');
+  const r=document.getElementById('box-rem');
+  if(m)m.classList.toggle('active',f==='main');
+  if(r)r.classList.toggle('active',f==='rem');
+  updateBoxes();
+}
+
+function updateBoxes(){
+  ['main','rem'].forEach(f=>{
+    const b=document.getElementById('box-'+f);if(!b)return;
+    const isAct=field===f&&!locked;
+    b.innerHTML=vals[f]+(isAct?'<span class="cursor"></span>':'');
+  });
+}
+
+function press(n){
+  if(locked)return;
+  const max=field==='main'?4:3;
+  if(vals[field].length>=max)return;
+  vals[field]+=n;updateBoxes();
+}
+
+function del(){
+  if(locked)return;
+  if(vals[field].length>0){vals[field]=vals[field].slice(0,-1);}
+  else if(field==='rem'){setF('main');}
+  updateBoxes();
+}
+
+function submit(){
+  if(locked||vals.main==='')return;
+  const q=qs[cur];
+  if(q.div&&vals.rem===''){setF('rem');return;}
+  locked=true;
+  const um=parseInt(vals.main);
+  const ur=q.div?parseInt(vals.rem):null;
+  const ok=q.div?(um===q.ans.main&&ur===q.ans.rem):(um===q.ans.main);
+  log.push({q,ok,um,ur});
+
+  setTimeout(()=>{
+    cur++;
+    cur>=N?finish():loadQ();
+  },300);
+}
+
+function finish(){
+  clearInterval(tiv);
+  const secs=((Date.now()-t0)/1000).toFixed(1);
+  const cnt=log.filter(r=>r.ok).length;
+  document.getElementById('remoji').textContent=cnt===10?'🏆':cnt>=8?'🎉':cnt>=5?'😊':'💪';
+  document.getElementById('rscore').textContent=`${cnt} / ${N}`;
+  document.getElementById('rtime').textContent=`用时 ${secs} 秒`;
+  const ul=document.getElementById('qlist');ul.innerHTML='';
+  log.forEach((r,i)=>{
+    const li=el('li',`qitem ${r.ok?'c':'w'}`);
+    const {q}=r;
+    const ans=q.div?`商${q.ans.main} 余${q.ans.rem}`:q.ans.main;
+    li.innerHTML=`<span class="qtext">${i+1}. ${q.a} ${q.op} ${q.b} = ${ans}</span><span class="qstatus">${r.ok?'✅':'❌'}</span>`;
+    ul.appendChild(li);
+  });
+  show('s-results');
+}
+
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('s-game').classList.contains('active'))return;
+  if(e.key>='0'&&e.key<='9'){press(+e.key);}
+  else if(e.key==='Backspace'){e.preventDefault();del();}
+  else if(e.key==='Enter'){submit();}
+  else if(e.key==='Tab'){e.preventDefault();if(qs[cur]?.div)setF(field==='main'?'rem':'main');}
+});
+</script>
+</body>
+</html>
